@@ -16,12 +16,12 @@ public:
 	~MemoryDevice();
 
 	/*
-	*	writes "num_bytes" bytes to the device starting at "start"
-	*	returns error code:
-	*		0 if success
-	*		1 if trying to write outside of device in some way
+	* writes "num_bytes" bytes to the device starting at "start"
+	* returns error code:
+	*	0 if success
+	*	1 if trying to write outside of device in some way
 	 */
-	int write(int block, char* to_write, size_t num_bytes, int start = 0);
+	int write(int block, char* to_write, int num_bytes, int start = 0);
 
 
 };

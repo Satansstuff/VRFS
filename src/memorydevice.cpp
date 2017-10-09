@@ -22,7 +22,7 @@ MemoryDevice::~MemoryDevice()
 
 int MemoryDevice::write(int block, char* to_write, int num_bytes, int start)
 {
-	if(block < 0 || blocks >= NUM_BLOCKS)
+	if(block < 0 || block >= NUM_BLOCKS)
 		return 1;
 	if(start < 0 || num_bytes < 0)
 		return 1;
