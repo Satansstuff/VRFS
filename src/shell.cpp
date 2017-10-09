@@ -1,6 +1,6 @@
 #include <iostream>
 #include <sstream>
-//#include "filesystem.h"
+#include "filesystem.h"
 
 const int MAXCOMMANDS = 8;
 const int NUMAVAILABLECOMMANDS = 15;
@@ -19,6 +19,10 @@ std::string help();
 /* More functions ... */
 
 int main(void) {
+	// DEBUG
+	FileSystem asd;
+	// DEBUG
+
 
 	std::string userCommand, commandArr[MAXCOMMANDS];
 	std::string user = "user@DV1492";    // Change this if you want another user to be displayed
