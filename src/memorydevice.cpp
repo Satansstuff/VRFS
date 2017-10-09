@@ -23,14 +23,14 @@ MemoryDevice::~MemoryDevice()
 int MemoryDevice::write(int block, char* to_write, int num_bytes, int start)
 {
 	if(block < 0 || block >= NUM_BLOCKS)
-		return 1;
+		return 0;
 	if(start < 0 || num_bytes < 0)
-		return 1;
+		return 0;
 	if(num_bytes + start > BLOCK_SIZE)
-		return 1;
+		return 0;
 
 	char* dest = blocks[block] + start;
 	std::memcpy(dest, to_write, num_bytes);
 
-	return 0;
+	return 1;
 }
