@@ -8,7 +8,7 @@
 
 #define Address unsigned short;
 
-class INode {
+struct INode {
 	// [0]: is_directory
 	// [1]: can read
 	// [2]: can write
