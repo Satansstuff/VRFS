@@ -20,7 +20,7 @@ std::string help();
 
 int main(void) {
 	// DEBUG
-	FileSystem asd;
+
 	// DEBUG
 
 
