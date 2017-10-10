@@ -22,9 +22,9 @@ std::string help();
 /* More functions ... */
 
 int main(void) {
-	// DEBUG
-
-	// DEBUG
+	// <DEBUG>
+	FileSystem f;
+	// </DEBUG>
 
 	std::string userCommand, commandArr[MAXCOMMANDS];
 	std::string user = "user@DV1492";    // Change this if you want another user to be displayed

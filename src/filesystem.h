@@ -1,13 +1,13 @@
-#pragma once
+'#pragma once
 
-#include <bitset>
+#include "bitmap.h"
 #include "memorydevice.h"
 
 // number of blocks that contain inodes
-#define NUM_INODE_BLOCKS 4
+#define NUM_INODE_BLOCKS 6
 
 #define NUM_ADDRESSES 8
-#define FILENAME_SIZE 32
+#define FILENAME_SIZE 42
 
 #define Address unsigned short
 
@@ -15,7 +15,7 @@ struct Inode {
 	// [0]: is directory
 	// [1]: can read
 	// [2]: can write
-	std::bitset<3> attributes;
+	Bitmap<3> attributes;
 
 	char name[FILENAME_SIZE];
 
@@ -32,15 +32,16 @@ struct Inode {
 
 // -1 since first block is reserved for bitmaps
 constexpr int AVAILABLE_BLOCKS = NUM_BLOCKS - 1 - NUM_INODE_BLOCKS;
-constexpr int NUM_INODES = NUM_INODE_BLOCKS * BLOCK_SIZE/sizeof(Inode);
+constexpr int INODES_PER_BLOCK = BLOCK_SIZE/sizeof(Inode);
+constexpr int NUM_INODES = NUM_INODE_BLOCKS * INODES_PER_BLOCK;
 
 class FileSystem
 {
 	MemoryDevice memory;
 
-	std::bitset<AVAILABLE_BLOCKS> block_bitmap;
+	Bitmap<AVAILABLE_BLOCKS> block_bitmap;
 
-	std::bitset<NUM_INODES> inode_bitmap;
+	Bitmap<NUM_INODES> inode_bitmap;
 
 	void writeBlockBitmap();
 	void readBlockBitmap();
@@ -53,5 +54,6 @@ public:
 
 	~FileSystem();
 
+	
 
 };
