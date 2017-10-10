@@ -1,9 +1,11 @@
 #include "bitmap.h"
+#include "math.h"
 
 Bitmap::Bitmap(int _size)
 {
 	size = _size;
-	map = new char[size];
+	num_bytes = std::ceil(size/8.0);
+	map = new char[num_bytes];
 }
 
 Bitmap::~Bitmap()

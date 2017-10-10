@@ -2,6 +2,7 @@
 
 class Bitmap {
 	int size;
+	int num_bytes;
 	char* map;
 public:
 	Bitmap(int size);
