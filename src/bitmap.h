@@ -9,7 +9,10 @@ public:
 	~Bitmap();
 
 	int getSize();
+	int getNumBytes();
 	char* getMap();
+
+	void clear();
 
 	// returns value at i:th bit
 	// returns false if outside range

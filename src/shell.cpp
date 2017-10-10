@@ -1,6 +1,9 @@
 #include <iostream>
 #include <sstream>
+#include <cstring>
 #include "filesystem.h"
+#include "bitmap.h"
+#include <math.h>
 
 const int MAXCOMMANDS = 8;
 const int NUMAVAILABLECOMMANDS = 15;
@@ -23,7 +26,6 @@ int main(void) {
 
 	// DEBUG
 
-
 	std::string userCommand, commandArr[MAXCOMMANDS];
 	std::string user = "user@DV1492";    // Change this if you want another user to be displayed
 	std::string currentDir = "/";    // current directory, used for output
@@ -41,7 +43,7 @@ int main(void) {
             switch(cIndex) {
 
 			case 0: //quit
-				bRun = quit();                
+				bRun = quit();
                 break;
             case 1: // format
                 break;
