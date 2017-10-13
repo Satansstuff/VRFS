@@ -1,6 +1,6 @@
 #include "filesystem.h"
-
 #include <iostream>
+#include <unordered_map>
 
 FileSystem::FileSystem()
 {
@@ -30,5 +30,19 @@ void FileSystem::readInodeBitmap()
 {
 	memory.read(0, inode_bitmap.getMap(), inode_bitmap.getNumBytes(), block_bitmap.getNumBytes());
 }
+int FileSystem::create(const std::string& file)
+{
+	
+}
+File FileSystem::open(const std::string& file)
+{
 
+}
+int FileSystem::write(File file, const std::string& data)
+{
 
+}
+int FileSystem::close(File file)
+{
+	return open_files.erase(file); 
+}

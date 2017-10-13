@@ -10,6 +10,8 @@
 #define NUM_ADDRESSES 8
 #define FILENAME_SIZE 42
 
+#define FILE_NOT_FOUND -1
+
 #define Address unsigned short
 
 struct Inode {
@@ -73,8 +75,6 @@ public:
 	File open(const std::string& file);
 
 	int write(File file, const std::string& data);
-
-	
 
 	int close(File file);
 
