@@ -24,7 +24,7 @@ struct Inode {
 	unsigned short num_blocks;
 
 	// if file then block-addresses
-	// if directory then inode-addresses
+	// if directory then inode-addresses, first address is parent
 	Address addresses[NUM_ADDRESSES];
 
 	// always block-address
@@ -49,6 +49,9 @@ class FileSystem
 	};
 	MemoryDevice memory;
 
+	Inode current_directory;
+
+	// true if block is used
 	Bitmap<AVAILABLE_BLOCKS> block_bitmap;
 	unsigned int current_block;
 
@@ -62,6 +65,11 @@ class FileSystem
 
 	void writeInodeBitmap();
 	void readInodeBitmap();
+
+	std::string getPathTo(Inode inode);
+	Inode* getInode(Address address);
+
+	Inode* parseFilePath(const std::string& path);
 public:
 
 	FileSystem();
@@ -73,8 +81,6 @@ public:
 	File open(const std::string& file);
 
 	int write(File file, const std::string& data);
-
-	
 
 	int close(File file);
 
