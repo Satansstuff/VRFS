@@ -8,11 +8,23 @@
 #define NUM_INODE_BLOCKS 6
 
 #define NUM_ADDRESSES 8
-#define FILENAME_SIZE 42
+#define FILENAME_SIZE 40
+
+enum filecodes
+{
+	OPEN_OK = 3,
+	READ_OK = 2,
+	WRITE_OK = 1,
+	FILE_NOT_FOUND = 0,
+	FILE_NOT_OPEN = -1,
+	ACCESS_DENIED = -2,
+	DISK_FULL = -3
+};
 
 #define Address unsigned short
 
-struct Inode {
+struct Inode 
+{
 	// [0]: is directory
 	// [1]: can read
 	// [2]: can write
@@ -20,8 +32,8 @@ struct Inode {
 
 	char name[FILENAME_SIZE];
 
-	// if num_blocks > NUM_ADDRESSES then indirect is used
-	unsigned short num_blocks;
+	//if numBytes / BLOCK_SIZE > NUM_ADDRESSES, indirect is used
+	unsigned int numBytes = 0;
 
 	// if file then block-addresses
 	// if directory then inode-addresses, first address is parent
@@ -41,12 +53,6 @@ constexpr int NUM_INODES = NUM_INODE_BLOCKS * INODES_PER_BLOCK;
 
 class FileSystem
 {
-	struct OpenFile
-	{
-		
-		char* buffer;
-		Inode inode;
-	};
 	MemoryDevice memory;
 
 	Inode current_directory;
@@ -56,9 +62,9 @@ class FileSystem
 	unsigned int current_block;
 
 	Bitmap<NUM_INODES> inode_bitmap;
-	unsigned int current_inode;
+	unsigned int current_inode = 1;
 
-	std::unordered_map<File, OpenFile> open_files;
+	std::unordered_map<File, Inode> open_files;
 
 	void writeBlockBitmap();
 	void readBlockBitmap();
@@ -78,10 +84,13 @@ public:
 
 	int create(const std::string& file);
 
+	int remove(const std::string& file);
+
+	int chmod(const std::string &str, bool r, bool w);
+
 	File open(const std::string& file);
 
 	int write(File file, const std::string& data);
 
 	int close(File file);
-
 };

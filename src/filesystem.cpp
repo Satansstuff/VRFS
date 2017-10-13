@@ -1,6 +1,6 @@
 #include "filesystem.h"
-
 #include <iostream>
+#include <unordered_map>
 
 FileSystem::FileSystem()
 {
@@ -108,3 +108,87 @@ Inode* FileSystem::parseFilePath(const std::string& path)
 }
 
 
+
+int FileSystem::create(const std::string& file)
+{
+	return 0;
+}
+File FileSystem::open(const std::string& file)
+{
+	return 0;
+}
+int FileSystem::write(File file, const std::string& data)
+{
+	if(!file)
+	{
+		return filecodes::FILE_NOT_FOUND;
+	}
+	auto fptr = open_files.find(file);
+	if(fptr == open_files.end())
+	{
+		return filecodes::FILE_NOT_OPEN;
+	}
+	Inode of = fptr->second;
+	if(!of.attributes[1] || !of.attributes[2])
+	{
+		return filecodes::ACCESS_DENIED;
+	}
+	size_t datasize = data.length();
+	unsigned blocksNeeded = std::ceil(datasize / BLOCK_SIZE);
+	if(blocksNeeded > AVAILABLE_BLOCKS)
+	{
+		return filecodes::DISK_FULL;
+	}
+	const char *writable = data.c_str();
+	if(blocksNeeded == 1)
+	{
+		for(size_t i = current_block; i < AVAILABLE_BLOCKS; i++)
+		{
+			if(block_bitmap[i])
+			{
+				block_bitmap.set(i, true);
+				memory.write(i,writable, datasize, 0);
+				current_block++;
+				break;
+			}
+			else
+			{
+				current_block++;
+			}
+		}
+	}
+	else if(blocksNeeded < NUM_ADDRESSES)
+	{
+		size_t dataToWrite = datasize;
+		for(size_t i = current_block; i < AVAILABLE_BLOCKS; i++)
+		{
+			if(dataToWrite > 0)
+			{
+				if(block_bitmap[i])
+				{
+
+				}
+				else
+				{
+					current_block++;
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	else
+	{
+		//Indirect needed
+	}
+}
+int FileSystem::remove(const std::string& file)
+{
+	return 0;
+}
+int FileSystem::close(File file)
+{
+	return open_files.erase(file); 
+}
