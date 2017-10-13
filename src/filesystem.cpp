@@ -6,6 +6,8 @@ FileSystem::FileSystem()
 {
 	std::cout << "Bitmaps size:  " << AVAILABLE_BLOCKS + NUM_INODES << "\n";
 	std::cout << "Bitmaps bytes: " << (AVAILABLE_BLOCKS + NUM_INODES)/8 << "\n";
+	Inode node;
+	node.attributes.set(0,true);
 }
 
 
@@ -118,7 +120,11 @@ int FileSystem::create(const std::string& file)
 }
 File FileSystem::open(const std::string& file)
 {
-	return 0;
+	Inode *node = this->parseFilePath(file);
+	if(!node)
+		return filecodes::FILE_NOT_FOUND;
+	if(!node.attributes[1])
+		return filecodes::ACCESS_DENIED;
 }
 int FileSystem::write(File file, const std::string& data)
 {
