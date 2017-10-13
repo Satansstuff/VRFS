@@ -77,6 +77,8 @@ class FileSystem
 	Inode* getDirectoryFromAbsolute(const std::string& dir);
 
 	Inode* parsePath(const std::string& path);
+
+	int writeInodeToBlock(Inode *node);
 public:
 
 	FileSystem();

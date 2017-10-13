@@ -230,10 +230,10 @@ int FileSystem::write(File file, const std::string& data)
 	{
 		for(size_t i = current_block; i < AVAILABLE_BLOCKS; i++)
 		{
-			if(block_bitmap[i])
+			if(!block_bitmap[i])
 			{
 				block_bitmap.set(i, true);
-				memory.write(i,writable, datasize, 0);
+				memory.write(i + NUM_INODE_BLOCKS + 1, writable, datasize, 0);
 				current_block++;
 				break;
 			}
@@ -269,6 +269,15 @@ int FileSystem::write(File file, const std::string& data)
 	{
 		//Indirect needed
 	}
+	writeInodeToBlock(&of);
+	return filecodes::WRITE_OK;
+}
+int FileSystem::writeInodeToBlock(Inode *node)
+{
+		int block = node->addresses[1] / INODES_PER_BLOCK + 1;
+		int inodes_out = node->addresses[1] % INODES_PER_BLOCK;
+		memory.write(block, (char*)node, sizeof(Inode), inodes_out*sizeof(Inode));
+		return 1;
 }
 int FileSystem::remove(const std::string& file)
 {
