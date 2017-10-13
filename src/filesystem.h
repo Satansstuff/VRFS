@@ -67,15 +67,16 @@ class FileSystem
 	std::unordered_map<File, Inode> open_files;
 
 	void writeBlockBitmap();
-	void readBlockBitmap();
+	void readBlockBitmap();Ino
 
 	void writeInodeBitmap();
 	void readInodeBitmap();
 
 	std::string getPathTo(Inode inode);
 	Inode* getInode(Address address);
+	Inode* getDirectoryFromAbsolute(const std::string& dir);
 
-	Inode* parseFilePath(const std::string& path);
+	Inode* parsePath(const std::string& path);
 
 	int writeInodeToBlock(Inode *node);
 public:
@@ -89,6 +90,7 @@ public:
 	int remove(const std::string& file);
 
 	int chmod(const std::string &str, bool r, bool w);
+	int mkdir(const std::string &dir);
 
 	File open(const std::string& file);
 

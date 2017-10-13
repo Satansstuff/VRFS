@@ -1,6 +1,7 @@
 #include "filesystem.h"
 #include <iostream>
 #include <unordered_map>
+#include <sstream>
 
 FileSystem::FileSystem()
 {
@@ -76,7 +77,7 @@ std::string FileSystem::getPathTo(Inode inode)
 	}
 }
 
-Inode* FileSystem::parseFilePath(const std::string& path)
+Inode* FileSystem::parsePath(const std::string& path)
 {
 	int last_slash = -1;
 	for(unsigned i = 0; i < path.size(); i++)
@@ -85,6 +86,8 @@ Inode* FileSystem::parseFilePath(const std::string& path)
 
 	if(last_slash == -1 || path.size() < 3)
 		return nullptr;
+
+	std::string to_find = path.substr(last_slash, path.size()-last_slash);
 
 	std::string dir_path = path.substr(0, last_slash);
 
@@ -105,12 +108,92 @@ Inode* FileSystem::parseFilePath(const std::string& path)
 			return nullptr;
 		std::string left = getPathTo(*parent);
 		dir_path = left + dir_path.substr(2, last_slash - 2);
+		delete parent;
 	}
 	else
 	{
 		// relative current dir
+		dir_path = getPathTo(current_directory) + dir_path;
 	}
+
+	Inode* result = nullptr;
+
+	Inode* to_search = getDirectoryFromAbsolute(dir_path);
+
+	if(!to_search)
+	{
+		// Directory not found
+	}
+	else
+	{
+		if(to_search->numBytes < NUM_ADDRESSES - 2)
+		{
+			// don't use indirect
+			for(int i = 0; i < to_search->numBytes; i++)
+			{
+				Inode* to_check = getInode(to_search->addresses[i+2]);
+				std::string name(to_check->name);
+				if(name == to_find)
+				{
+					result = to_check;
+					break;
+				}
+			}
+		}
+		else
+		{
+			// use indirect
+			// TODO: implement
+		}
+	}
+	return result;
 }
+
+Inode* FileSystem::getDirectoryFromAbsolute(const std::string& dir)
+{
+	Inode* result = nullptr;
+
+	std::stringstream stream(dir);
+	std::string item;
+
+	// start with root (0)
+	Inode* cur_dir = getInode(0);
+	while(std::getline(stream, item, "/"))
+	{
+		if(item.size() == 0)
+			continue;
+
+		// numBytes is number of addresses used here
+		if(cur_dir->numBytes < NUM_ADDRESSES - 2)
+		{
+			// only in addresses
+			for(int i = 0; i < cur_dir->numBytes;i++)
+			{
+				Inode* to_check = getInode(cur_dir->addresses[i+2]);
+				std::string name(to_check->name);
+				if(name == item && to_check.attributes[0])
+				{
+					delete cur_dir;
+					cur_dir = to_check;
+					break;
+				}
+				else
+				{
+					delete to_check;
+				}
+			}
+			// can only get here if nothing found
+			return nullptr;
+		}
+		else
+		{
+			// use indirect
+			// TODO: implement pl0x
+		}
+	}
+	return cur_dir;
+}
+
 
 
 
