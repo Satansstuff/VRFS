@@ -93,13 +93,16 @@ Inode* FileSystem::parseFilePath(const std::string& path)
 	else if(path[0] == '.' && path[1] == '/')
 	{
 		// relative current dir
-		dir_path = getPathTo(current_directory) + dir_path.substr(1, last_slash - 1);
+		dir_path = getPathTo(current_directory) + dir_path.substr(2, last_slash - 2);
 	}
 	else if(path[0] == '.' && path[1] == '.' && path[2] == '/')
 	{
 		// relative parent
-		std::string left 
-		dir_path = dir_path.substr(2, last_slash - 2);
+		Inode* parent = getInode(current_directory.addresses[0]);
+		if(!parent)
+			return nullptr;
+		std::string left = getPathTo(*parent);
+		dir_path = left + dir_path.substr(2, last_slash - 2);
 	}
 	else
 	{
@@ -166,7 +169,7 @@ int FileSystem::write(File file, const std::string& data)
 			{
 				if(block_bitmap[i])
 				{
-
+					
 				}
 				else
 				{

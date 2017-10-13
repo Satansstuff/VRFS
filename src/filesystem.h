@@ -36,7 +36,7 @@ struct Inode
 	unsigned int numBytes = 0;
 
 	// if file then block-addresses
-	// if directory then inode-addresses, first address is parent
+	// if directory then inode-addresses, [0]: is parent, [1] is itself
 	Address addresses[NUM_ADDRESSES];
 
 	// always block-address
