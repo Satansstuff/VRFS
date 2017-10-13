@@ -55,7 +55,7 @@ class FileSystem
 	Bitmap<NUM_INODES> inode_bitmap;
 	unsigned int current_inode;
 
-	std::unordered_map<FileID, OpenFile> open_files;
+	std::unordered_map<File, OpenFile> open_files;
 
 	void writeBlockBitmap();
 	void readBlockBitmap();
@@ -70,12 +70,12 @@ public:
 
 	int create(const std::string& file);
 
-	FileID open(const std::string& file);
+	File open(const std::string& file);
 
-	int write(FileID, const std::string& data);
+	int write(File file, const std::string& data);
 
 	
 
-	int close(VFile file);
+	int close(File file);
 
 };
