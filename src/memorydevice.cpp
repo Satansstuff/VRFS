@@ -20,7 +20,7 @@ MemoryDevice::~MemoryDevice()
 	delete[] blocks;
 }
 
-int MemoryDevice::write(int block, char* data, int num_bytes, int start)
+int MemoryDevice::write(int block,const char* data, int num_bytes, int start)
 {
 	if(block < 0 || block >= NUM_BLOCKS)
 		return 0;

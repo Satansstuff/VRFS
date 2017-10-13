@@ -21,7 +21,7 @@ public:
 	*	0 if success
 	*	1 if trying to write outside of device in some way
 	 */
-	int write(int block, char* data, int num_bytes, int start = 0);
+	int write(int block, const char* data, int num_bytes, int start = 0);
 
 	int read(int block, char* dest, int num_bytes, int start = 0);
 };

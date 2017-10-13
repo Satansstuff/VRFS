@@ -54,7 +54,56 @@ int FileSystem::write(File file, const std::string& data)
 	{
 		return filecodes::ACCESS_DENIED;
 	}
+	size_t datasize = data.length();
+	unsigned blocksNeeded = std::ceil(datasize / BLOCK_SIZE);
+	if(blocksNeeded > AVAILABLE_BLOCKS)
+	{
+		return filecodes::DISK_FULL;
+	}
+	const char *writable = data.c_str();
+	if(blocksNeeded == 1)
+	{
+		for(size_t i = current_block; i < AVAILABLE_BLOCKS; i++)
+		{
+			if(block_bitmap[i])
+			{
+				block_bitmap.set(i, true);
+				memory.write(i,writable, datasize, 0);
+				current_block++;
+				break;
+			}
+			else
+			{
+				current_block++;
+			}
+		}
+	}
+	else if(blocksNeeded < NUM_ADDRESSES)
+	{
+		size_t dataToWrite = datasize;
+		for(size_t i = current_block; i < AVAILABLE_BLOCKS; i++)
+		{
+			if(dataToWrite > 0)
+			{
+				if(block_bitmap[i])
+				{
 
+				}
+				else
+				{
+					current_block++;
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	else
+	{
+		//Indirect needed
+	}
 }
 int FileSystem::remove(const std::string& file)
 {
