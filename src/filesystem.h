@@ -76,6 +76,8 @@ class FileSystem
 	Inode* getInode(Address address);
 
 	Inode* parseFilePath(const std::string& path);
+
+	int writeInodeToBlock(Inode *node);
 public:
 
 	FileSystem();
