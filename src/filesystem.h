@@ -10,11 +10,17 @@
 #define NUM_ADDRESSES 8
 #define FILENAME_SIZE 42
 
-#define FILE_NOT_FOUND -1
+enum filecodes
+{
+	FILE_NOT_FOUND = -1,
+	FILE_NOT_OPEN = -2,
+	ACCESS_DENIED = -3
+};
 
 #define Address unsigned short
 
-struct Inode {
+struct Inode 
+{
 	// [0]: is directory
 	// [1]: can read
 	// [2]: can write
@@ -43,12 +49,6 @@ constexpr int NUM_INODES = NUM_INODE_BLOCKS * INODES_PER_BLOCK;
 
 class FileSystem
 {
-	struct OpenFile
-	{
-		
-		char* buffer;
-		Inode inode;
-	};
 	MemoryDevice memory;
 
 	Bitmap<AVAILABLE_BLOCKS> block_bitmap;
@@ -57,7 +57,7 @@ class FileSystem
 	Bitmap<NUM_INODES> inode_bitmap;
 	unsigned int current_inode;
 
-	std::unordered_map<File, OpenFile> open_files;
+	std::unordered_map<File, Inode> open_files;
 
 	void writeBlockBitmap();
 	void readBlockBitmap();
@@ -72,10 +72,11 @@ public:
 
 	int create(const std::string& file);
 
+	int remove(const std::string& file);
+
 	File open(const std::string& file);
 
 	int write(File file, const std::string& data);
 
 	int close(File file);
-
 };

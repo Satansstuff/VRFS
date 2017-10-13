@@ -32,15 +32,33 @@ void FileSystem::readInodeBitmap()
 }
 int FileSystem::create(const std::string& file)
 {
-	
+	return 0;
 }
 File FileSystem::open(const std::string& file)
 {
-
+	return 0;
 }
 int FileSystem::write(File file, const std::string& data)
 {
+	if(!file)
+	{
+		return filecodes::FILE_NOT_FOUND;
+	}
+	auto fptr = open_files.find(file);
+	if(fptr == open_files.end())
+	{
+		return filecodes::FILE_NOT_OPEN;
+	}
+	Inode of = fptr->second;
+	if(!of.attributes[1] || !of.attributes[2])
+	{
+		return filecodes::ACCESS_DENIED;
+	}
 
+}
+int FileSystem::remove(const std::string& file)
+{
+	return 0;
 }
 int FileSystem::close(File file)
 {
