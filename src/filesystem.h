@@ -1,5 +1,6 @@
-'#pragma once
+#pragma once
 
+#include <unordered_map>
 #include "bitmap.h"
 #include "memorydevice.h"
 
@@ -35,13 +36,26 @@ constexpr int AVAILABLE_BLOCKS = NUM_BLOCKS - 1 - NUM_INODE_BLOCKS;
 constexpr int INODES_PER_BLOCK = BLOCK_SIZE/sizeof(Inode);
 constexpr int NUM_INODES = NUM_INODE_BLOCKS * INODES_PER_BLOCK;
 
+
+#define File unsigned long
+
 class FileSystem
 {
+	struct OpenFile
+	{
+		
+		char* buffer;
+		Inode inode;
+	};
 	MemoryDevice memory;
 
 	Bitmap<AVAILABLE_BLOCKS> block_bitmap;
+	unsigned int current_block;
 
 	Bitmap<NUM_INODES> inode_bitmap;
+	unsigned int current_inode;
+
+	std::unordered_map<FileID, OpenFile> open_files;
 
 	void writeBlockBitmap();
 	void readBlockBitmap();
@@ -54,6 +68,14 @@ public:
 
 	~FileSystem();
 
+	int create(const std::string& file);
+
+	FileID open(const std::string& file);
+
+	int write(FileID, const std::string& data);
+
 	
+
+	int close(VFile file);
 
 };
