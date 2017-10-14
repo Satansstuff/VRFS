@@ -208,6 +208,7 @@ File FileSystem::open(const std::string& file)
 		return filecodes::FILE_NOT_FOUND;
 	if(!node.attributes[1])
 		return filecodes::ACCESS_DENIED;
+	//File genereras någonstans. Unsigned long long? exde
 }
 int FileSystem::write(File file, const std::string& data)
 {
@@ -287,7 +288,37 @@ int FileSystem::writeInodeToBlock(Inode *node)
 }
 int FileSystem::remove(const std::string& file)
 {
-	return 0;
+	inode *toRemove = parsePath(file);
+	auto address = toRemove->addresses[1];
+	if(!toRemove)
+	{
+		return filecodes::FILE_NOT_FOUND;
+	}
+	if(!toRemove->attributes[2])
+	{
+		return filecodes::ACCESS_DENIED;
+	}
+	if(toRemove->attributes[0] && toRemove->numBytes != 0)
+	{
+		return filecodes::NOT_EMPTY_FOLDER;
+	}
+	else if(toRemove->attributes[0] && toRemove->numBytes == 0)
+	{
+		//Det är en tom mapp, ta bort.
+	}
+	//Sök igenom openfiles så man inte tar bort en fil som är öppen
+	for(auto &inode : open_files)
+	{
+		if(inode.addresses[1] = address)
+		{
+			return filecodes::FILE_IS_OPEN;
+		}
+	}
+	/*
+		Sätt bitmap både inode och block till false så de kan återanvändas
+		måste veta om det är indirect och hur mycket jadijadijadi
+	*/
+
 }
 int FileSystem::close(File file)
 {
