@@ -129,7 +129,7 @@ Inode* FileSystem::parsePath(const std::string& path)
 		if(to_search->numBytes < NUM_ADDRESSES - 2)
 		{
 			// don't use indirect
-			for(int i = 0; i < to_search->numBytes; i++)
+			for(size_t i = 0; i < to_search->numBytes; i++)
 			{
 				Inode* to_check = getInode(to_search->addresses[i+2]);
 				std::string name(to_check->name);
@@ -167,11 +167,11 @@ Inode* FileSystem::getDirectoryFromAbsolute(const std::string& dir)
 		if(cur_dir->numBytes < NUM_ADDRESSES - 2)
 		{
 			// only in addresses
-			for(int i = 0; i < cur_dir->numBytes;i++)
+			for(size_t i = 0; i < cur_dir->numBytes;i++)
 			{
 				Inode* to_check = getInode(cur_dir->addresses[i+2]);
 				std::string name(to_check->name);
-				if(name == item && to_check.attributes[0])
+				if(name == item && to_check->attributes[0])
 				{
 					delete cur_dir;
 					cur_dir = to_check;
@@ -203,12 +203,13 @@ int FileSystem::create(const std::string& file)
 }
 File FileSystem::open(const std::string& file)
 {
-	Inode *node = this->parseFilePath(file);
+	Inode *node = this->parsePath(file);
 	if(!node)
 		return filecodes::FILE_NOT_FOUND;
-	if(!node.attributes[1])
+	if(!node->attributes[1])
 		return filecodes::ACCESS_DENIED;
 	//File genereras någonstans. Unsigned long long? exde
+	return filecodes::OPEN_OK;
 }
 int FileSystem::write(File file, const std::string& data)
 {
@@ -288,7 +289,7 @@ int FileSystem::writeInodeToBlock(Inode *node)
 }
 int FileSystem::remove(const std::string& file)
 {
-	inode *toRemove = parsePath(file);
+	Inode *toRemove = parsePath(file);
 	auto address = toRemove->addresses[1];
 	if(!toRemove)
 	{
@@ -309,7 +310,7 @@ int FileSystem::remove(const std::string& file)
 	//Sök igenom openfiles så man inte tar bort en fil som är öppen
 	for(auto &inode : open_files)
 	{
-		if(inode.addresses[1] = address)
+		if(inode.second.addresses[1] == address)
 		{
 			return filecodes::FILE_IS_OPEN;
 		}
@@ -318,6 +319,7 @@ int FileSystem::remove(const std::string& file)
 		Sätt bitmap både inode och block till false så de kan återanvändas
 		måste veta om det är indirect och hur mycket jadijadijadi
 	*/
+	return filecodes::DELETE_OK;
 
 }
 int FileSystem::close(File file)

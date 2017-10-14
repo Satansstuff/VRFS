@@ -20,7 +20,7 @@ enum filecodes
 	FILE_NOT_FOUND = 0,
 	FILE_NOT_OPEN = -1,
 	ACCESS_DENIED = -2,
-	DISK_FULL = -3
+	DISK_FULL = -3,
 	FILE_IS_OPEN = -4,
 	NOT_EMPTY_FOLDER = -5
 };
@@ -71,7 +71,7 @@ class FileSystem
 	std::unordered_map<File, Inode> open_files;
 
 	void writeBlockBitmap();
-	void readBlockBitmap();Ino
+	void readBlockBitmap();
 
 	void writeInodeBitmap();
 	void readInodeBitmap();
