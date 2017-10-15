@@ -7,8 +7,16 @@ FileSystem::FileSystem()
 {
 	std::cout << "Bitmaps size:  " << AVAILABLE_BLOCKS + NUM_INODES << "\n";
 	std::cout << "Bitmaps bytes: " << (AVAILABLE_BLOCKS + NUM_INODES)/8 << "\n";
-	Inode node;
-	node.attributes.set(0,true);
+	Inode root_dir;
+	root_dir.attributes.set(0,true);
+	root_dir.attributes.set(1,true);
+	root_dir.attributes.set(2,true);
+	root_dir.name = "/";
+	root_dir.addresses[0] = 0;
+	root_dir.addresses[1] = 0;
+	inode_bitmap.set(0, true);
+	writeInodeBitmap();
+	writeInodeToBlock(&root_dir);
 }
 
 
@@ -129,7 +137,7 @@ Inode* FileSystem::parsePath(const std::string& path)
 		if(to_search->numBytes < NUM_ADDRESSES - 2)
 		{
 			// don't use indirect
-			for(int i = 0; i < to_search->numBytes; i++)
+			for(unsigned i = 0; i < to_search->numBytes; i++)
 			{
 				Inode* to_check = getInode(to_search->addresses[i+2]);
 				std::string name(to_check->name);
@@ -151,14 +159,12 @@ Inode* FileSystem::parsePath(const std::string& path)
 
 Inode* FileSystem::getDirectoryFromAbsolute(const std::string& dir)
 {
-	Inode* result = nullptr;
-
 	std::stringstream stream(dir);
 	std::string item;
 
 	// start with root (0)
 	Inode* cur_dir = getInode(0);
-	while(std::getline(stream, item, "/"))
+	while(std::getline(stream, item, '/'))
 	{
 		if(item.size() == 0)
 			continue;
@@ -167,11 +173,11 @@ Inode* FileSystem::getDirectoryFromAbsolute(const std::string& dir)
 		if(cur_dir->numBytes < NUM_ADDRESSES - 2)
 		{
 			// only in addresses
-			for(int i = 0; i < cur_dir->numBytes;i++)
+			for(unsigned i = 0; i < cur_dir->numBytes;i++)
 			{
 				Inode* to_check = getInode(cur_dir->addresses[i+2]);
 				std::string name(to_check->name);
-				if(name == item && to_check.attributes[0])
+				if(name == item && to_check->attributes[0])
 				{
 					delete cur_dir;
 					cur_dir = to_check;
@@ -203,10 +209,10 @@ int FileSystem::create(const std::string& file)
 }
 File FileSystem::open(const std::string& file)
 {
-	Inode *node = this->parseFilePath(file);
+	Inode *node = this->parsePath(file);
 	if(!node)
 		return filecodes::FILE_NOT_FOUND;
-	if(!node.attributes[1])
+	if(!node->attributes[1])
 		return filecodes::ACCESS_DENIED;
 }
 int FileSystem::write(File file, const std::string& data)

@@ -23,7 +23,7 @@ enum filecodes
 
 #define Address unsigned short
 
-struct Inode 
+struct Inode
 {
 	// [0]: is directory
 	// [1]: can read
@@ -67,7 +67,7 @@ class FileSystem
 	std::unordered_map<File, Inode> open_files;
 
 	void writeBlockBitmap();
-	void readBlockBitmap();Ino
+	void readBlockBitmap();
 
 	void writeInodeBitmap();
 	void readInodeBitmap();
