@@ -21,7 +21,7 @@ enum filecodes
 	ACCESS_DENIED = -2,
 	DISK_FULL = -3,
 	FILE_IS_OPEN = -4,
-	NOT_EMPTY_FOLDER = -5
+	NOT_EMPTY_FOLDER = -5,
 	FILE_ERROR = -6
 };
 
@@ -59,7 +59,7 @@ class FileSystem
 {
 	MemoryDevice memory;
 
-	Inode current_directory;
+	Address current_directory;
 
 	// true if block is used
 	Bitmap<AVAILABLE_BLOCKS> block_bitmap;
@@ -83,6 +83,11 @@ class FileSystem
 
 	Inode* parsePath(const std::string& path);
 
+
+	// returns -1 if full
+	int reserveFreeBlock();
+	int reserveFreeInode();
+
 	int writeInodeToBlock(Inode *node);
 	unsigned long counter = 0;
 	unsigned long getNewFileID();
@@ -98,6 +103,7 @@ public:
 
 	int chmod(const std::string &str, bool r, bool w);
 	int mkdir(const std::string &dir);
+	int cd(const std::string &dir);
 
 	File open(const std::string& file);
 

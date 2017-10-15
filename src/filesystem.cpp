@@ -152,7 +152,7 @@ Inode* FileSystem::parsePath(const std::string& path)
 	else
 	{
 		// start with current directory
-		current = new Inode(current_directory);
+		current = getInode(current_directory);
 	}
 
 	std::stringstream stream(path);
@@ -192,6 +192,37 @@ Inode* FileSystem::parsePath(const std::string& path)
 	return current;
 }
 
+int FileSystem::reserveFreeBlock()
+{
+	readBlockBitmap();
+	int address = -1;
+	for(size_t i = 0; i < AVAILABLE_BLOCKS; i++)
+	{
+		if(!block_bitmap[i])
+		{
+			address = i;
+			block_bitmap.set(i, true);
+		}
+	}
+	writeBlockBitmap();
+	return address;
+}
+
+int FileSystem::reserveFreeInode()
+{
+	readInodeBitmap();
+	int address = -1;
+	for(size_t i = 0; i < NUM_INODES; i++)
+	{
+		if(!inode_bitmap[i])
+		{
+			address = i;
+			inode_bitmap.set(i, true);
+		}
+	}
+	writeInodeBitmap();
+	return address;
+}
 
 
 
@@ -285,10 +316,10 @@ int FileSystem::write(File file, const std::string& data)
 }
 int FileSystem::writeInodeToBlock(Inode *node)
 {
-		int block = node->addresses[1] / INODES_PER_BLOCK + 1;
-		int inodes_out = node->addresses[1] % INODES_PER_BLOCK;
-		memory.write(block, (char*)node, sizeof(Inode), inodes_out*sizeof(Inode));
-		return 1;
+	int block = node->addresses[1] / INODES_PER_BLOCK + 1;
+	int inodes_out = node->addresses[1] % INODES_PER_BLOCK;
+	memory.write(block, (char*)node, sizeof(Inode), inodes_out*sizeof(Inode));
+	return 1;
 }
 int FileSystem::remove(const std::string& file)
 {
@@ -335,12 +366,11 @@ int FileSystem::remove(const std::string& file)
 	return filecodes::DELETE_OK;
 
 }
+
 int FileSystem::close(File file)
 {
 	return open_files.erase(file); 
 }
-
-
 
 int FileSystem::mkdir(const std::string& dir)
 {
@@ -359,10 +389,42 @@ int FileSystem::mkdir(const std::string& dir)
 	if(!parent) // could not find parent
 		return 0;
 
+	readInodeBitmap();
+	Address adr = 0;
+	for(size_t i = 0; i < NUM_INODES; i++)
+	{
+		if(!inode_bitmap[i])
+		{
+			adr = i;
+			inode_bitmap.set(i, true);
+		}
+	}
+	writeInodeBitmap();
+	if(adr == 0)
+		return 0; // max number of files and directories (root == 0)
 
-	return 0;
+	Inode new_dir;
+	new_dir.attributes.set(0, true);
+	new_dir.attributes.set(1, true);
+	new_dir.attributes.set(2, true);
+	strcpy(new_dir.name, to_create.c_str());
+	new_dir.addresses[0] = parent->addresses[1];
+	new_dir.addresses[1] = adr;
+
+	// add adr to parent somehow
+
+	return 1;
 }
 
+int FileSystem::cd(const std::string& dir)
+{
+	Inode* to_enter = parsePath(dir);
+	if(!to_enter)
+		return 0; // nothing found
+
+	current_directory = to_enter->addresses[1];
+	return 1;
+}
 
 
 
