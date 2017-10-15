@@ -12,9 +12,8 @@
 
 enum filecodes
 {
-	DELETE_OK = 5,
-	CREATE_OK = 4,
-	OPEN_OK = 3,
+	DELETE_OK = 4,
+	CREATE_OK = 3,
 	READ_OK = 2,
 	WRITE_OK = 1,
 	FILE_NOT_FOUND = 0,
