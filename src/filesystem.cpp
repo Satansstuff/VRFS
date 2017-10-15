@@ -85,6 +85,11 @@ std::string FileSystem::getPathTo(Inode inode)
 	}
 }
 
+unsigned long FileSystem::getNewFileID()
+{
+	return counter++;
+}
+
 Inode* FileSystem::getParent(Inode* node)
 {
 	return getInode(node->addresses[0]);
@@ -197,12 +202,17 @@ int FileSystem::create(const std::string& file)
 File FileSystem::open(const std::string& file)
 {
 	Inode *node = this->parsePath(file);
+	int returncode = filecodes::FILE_ERROR;
 	if(!node)
-		return filecodes::FILE_NOT_FOUND;
-	if(!node->attributes[1])
-		return filecodes::ACCESS_DENIED;
-	//File genereras någonstans. Unsigned long long? exde
-	return filecodes::OPEN_OK;
+		returncode = filecodes::FILE_NOT_FOUND;
+	else if(!node->attributes[1])
+		returncode = filecodes::ACCESS_DENIED;
+	if(open_files.emplace(getNewFileID(),*node))
+		returncode = filecodes::OPEN_OK;
+	else
+		returncode = filecodes::FILE_ERROR;
+	delete node;
+	return returncode;
 }
 int FileSystem::write(File file, const std::string& data)
 {
@@ -299,6 +309,7 @@ int FileSystem::remove(const std::string& file)
 	else if(toRemove->attributes[0] && toRemove->numBytes == 0)
 	{
 		//Det är en tom mapp, ta bort.
+		return filecodes::DELETE_OK;
 	}
 	//Sök igenom openfiles så man inte tar bort en fil som är öppen
 	for(auto &inode : open_files)
@@ -312,6 +323,15 @@ int FileSystem::remove(const std::string& file)
 		Sätt bitmap både inode och block till false så de kan återanvändas
 		måste veta om det är indirect och hur mycket jadijadijadi
 	*/
+	unsigned numBlocks = toRemove->numBytes / BLOCK_SIZE;
+	if(numBlocks > NUM_ADDRESSES - 2)
+	{
+		//direct
+	}
+	else
+	{
+		//indirect
+	}
 	return filecodes::DELETE_OK;
 
 }

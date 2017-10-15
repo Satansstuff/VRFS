@@ -12,9 +12,8 @@
 
 enum filecodes
 {
-	DELETE_OK = 5,
-	CREATE_OK = 4,
-	OPEN_OK = 3,
+	DELETE_OK = 4,
+	CREATE_OK = 3,
 	READ_OK = 2,
 	WRITE_OK = 1,
 	FILE_NOT_FOUND = 0,
@@ -23,6 +22,7 @@ enum filecodes
 	DISK_FULL = -3,
 	FILE_IS_OPEN = -4,
 	NOT_EMPTY_FOLDER = -5
+	FILE_ERROR = -6
 };
 
 #define Address unsigned short
@@ -84,6 +84,8 @@ class FileSystem
 	Inode* parsePath(const std::string& path);
 
 	int writeInodeToBlock(Inode *node);
+	unsigned long counter = 0;
+	unsigned long getNewFileID();
 public:
 
 	FileSystem();
