@@ -26,7 +26,7 @@ enum filecodes
 
 #define Address unsigned short
 
-struct Inode 
+struct Inode
 {
 	// [0]: is directory
 	// [1]: can read

@@ -7,8 +7,16 @@ FileSystem::FileSystem()
 {
 	std::cout << "Bitmaps size:  " << AVAILABLE_BLOCKS + NUM_INODES << "\n";
 	std::cout << "Bitmaps bytes: " << (AVAILABLE_BLOCKS + NUM_INODES)/8 << "\n";
-	Inode node;
-	node.attributes.set(0,true);
+	Inode root_dir;
+	root_dir.attributes.set(0,true);
+	root_dir.attributes.set(1,true);
+	root_dir.attributes.set(2,true);
+	root_dir.name = "/";
+	root_dir.addresses[0] = 0;
+	root_dir.addresses[1] = 0;
+	inode_bitmap.set(0, true);
+	writeInodeBitmap();
+	writeInodeToBlock(&root_dir);
 }
 
 
@@ -151,14 +159,12 @@ Inode* FileSystem::parsePath(const std::string& path)
 
 Inode* FileSystem::getDirectoryFromAbsolute(const std::string& dir)
 {
-	Inode* result = nullptr;
-
 	std::stringstream stream(dir);
 	std::string item;
 
 	// start with root (0)
 	Inode* cur_dir = getInode(0);
-	while(std::getline(stream, item, "/"))
+	while(std::getline(stream, item, '/'))
 	{
 		if(item.size() == 0)
 			continue;
