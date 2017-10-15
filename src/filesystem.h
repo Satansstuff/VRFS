@@ -12,13 +12,17 @@
 
 enum filecodes
 {
+	DELETE_OK = 5,
+	CREATE_OK = 4,
 	OPEN_OK = 3,
 	READ_OK = 2,
 	WRITE_OK = 1,
 	FILE_NOT_FOUND = 0,
 	FILE_NOT_OPEN = -1,
 	ACCESS_DENIED = -2,
-	DISK_FULL = -3
+	DISK_FULL = -3,
+	FILE_IS_OPEN = -4,
+	NOT_EMPTY_FOLDER = -5
 };
 
 #define Address unsigned short
