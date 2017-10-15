@@ -213,14 +213,17 @@ int FileSystem::create(const std::string& file)
 File FileSystem::open(const std::string& file)
 {
 	Inode *node = this->parsePath(file);
+	int returncode = filecodes::FILE_ERROR;
 	if(!node)
-		return filecodes::FILE_NOT_FOUND;
-	if(!node->attributes[1])
-		return filecodes::ACCESS_DENIED;
+		returncode = filecodes::FILE_NOT_FOUND;
+	else if(!node->attributes[1])
+		returncode = filecodes::ACCESS_DENIED;
 	if(open_files.emplace(getNewFileID(),*node))
-		return filecodes::OPEN_OK;
+		returncode = filecodes::OPEN_OK;
 	else
-		return filecodes::FILE_ERROR;
+		returncode = filecodes::FILE_ERROR;
+	delete node;
+	return returncode;
 }
 int FileSystem::write(File file, const std::string& data)
 {
