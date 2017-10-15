@@ -11,7 +11,8 @@ FileSystem::FileSystem()
 	root_dir.attributes.set(0,true);
 	root_dir.attributes.set(1,true);
 	root_dir.attributes.set(2,true);
-	root_dir.name = "/";
+	//char name[FILENAME_SIZE] = "/";
+	strcpy(root_dir.name, "/");
 	root_dir.addresses[0] = 0;
 	root_dir.addresses[1] = 0;
 	inode_bitmap.set(0, true);
@@ -65,11 +66,10 @@ std::string FileSystem::getPathTo(Inode inode)
 		std::string current(curr_inode->name);
 		result = current + "/" +  result;
 
-		Inode* parent = getInode(inode.addresses[0]);
+		Inode* parent = getParent(&inode);
 		if(parent)
 		{
-			std::string parent_name(parent->name);
-			if(parent_name == "/")
+			if(parent->addresses[1] == 0)
 			{
 				result = "/" + result;
 				return result;
@@ -85,119 +85,106 @@ std::string FileSystem::getPathTo(Inode inode)
 	}
 }
 
-Inode* FileSystem::parsePath(const std::string& path)
+Inode* FileSystem::getParent(Inode* node)
 {
-	int last_slash = -1;
-	for(unsigned i = 0; i < path.size(); i++)
-		if(path[i] == '/')
-			last_slash = i;
+	return getInode(node->addresses[0]);
+}
 
-	if(last_slash == -1 || path.size() < 3)
-		return nullptr;
-
-	std::string to_find = path.substr(last_slash, path.size()-last_slash);
-
-	std::string dir_path = path.substr(0, last_slash);
-
-	if(path[0] == '/')
-	{
-		// absolute
-	}
-	else if(path[0] == '.' && path[1] == '/')
-	{
-		// relative current dir
-		dir_path = getPathTo(current_directory) + dir_path.substr(2, last_slash - 2);
-	}
-	else if(path[0] == '.' && path[1] == '.' && path[2] == '/')
-	{
-		// relative parent
-		Inode* parent = getInode(current_directory.addresses[0]);
-		if(!parent)
-			return nullptr;
-		std::string left = getPathTo(*parent);
-		dir_path = left + dir_path.substr(2, last_slash - 2);
-		delete parent;
-	}
-	else
-	{
-		// relative current dir
-		dir_path = getPathTo(current_directory) + dir_path;
-	}
-
+Inode* FileSystem::findChild(Inode* node, const std::string& child_name)
+{
 	Inode* result = nullptr;
 
-	Inode* to_search = getDirectoryFromAbsolute(dir_path);
 
-	if(!to_search)
+	for(size_t i = 0; i < node->numBytes && i < NUM_ADDRESSES - 2; i++)
 	{
-		// Directory not found
-	}
-	else
-	{
-		if(to_search->numBytes < NUM_ADDRESSES - 2)
+		Inode* child = getInode(node->addresses[i + 2]);
+		if(!child)
+			continue; // FILESYSTEM BROKEN
+		std::string name(child->name);
+		if(name == child_name)
 		{
-			// don't use indirect
-			for(size_t i = 0; i < to_search->numBytes; i++)
+			result = child;
+			break;
+		}
+		delete child;
+	}
+
+
+	// check in indirect
+	if(node->numBytes >= NUM_ADDRESSES - 2)
+	{
+		size_t num_in_block = node->numBytes - NUM_ADDRESSES + 2;
+		int block = node->indirect_address + NUM_INODE_BLOCKS + 1;
+		Address* buffer = new Address[num_in_block];
+		memory.read(block, (char*)buffer, sizeof(Address)*num_in_block);
+		for(size_t i = 0; i < num_in_block; i++)
+		{
+			Inode* child = getInode(buffer[i]);
+			if(!child)
+				continue; // FILESYSTEM BROKEN
+			std::string name(child->name);
+			if(name == child_name)
 			{
-				Inode* to_check = getInode(to_search->addresses[i+2]);
-				std::string name(to_check->name);
-				if(name == to_find)
-				{
-					result = to_check;
-					break;
-				}
+				result = child;
+				break;
 			}
-		}
-		else
-		{
-			// use indirect
-			// TODO: implement
+			delete child;
 		}
 	}
+
+
 	return result;
 }
 
-Inode* FileSystem::getDirectoryFromAbsolute(const std::string& dir)
+Inode* FileSystem::parsePath(const std::string& path)
 {
-	std::stringstream stream(dir);
-	std::string item;
+	Inode* current = nullptr;
+	if(path[0] == '/')
+	{
+		// start with root
+		current = getInode(0);
+	}
+	else
+	{
+		// start with current directory
+		current = new Inode(current_directory);
+	}
 
-	// start with root (0)
-	Inode* cur_dir = getInode(0);
+	std::stringstream stream(path);
+	std::string item;
 	while(std::getline(stream, item, '/'))
 	{
 		if(item.size() == 0)
 			continue;
 
-		// numBytes is number of addresses used here
-		if(cur_dir->numBytes < NUM_ADDRESSES - 2)
+		if(item.size() == 1 && item[0] == '.')
 		{
-			// only in addresses
-			for(size_t i = 0; i < cur_dir->numBytes;i++)
-			{
-				Inode* to_check = getInode(cur_dir->addresses[i+2]);
-				std::string name(to_check->name);
-				if(name == item && to_check->attributes[0])
-				{
-					delete cur_dir;
-					cur_dir = to_check;
-					break;
-				}
-				else
-				{
-					delete to_check;
-				}
-			}
-			// can only get here if nothing found
-			return nullptr;
+			// current dir, dont move
+		}
+		else if(item.size() == 2 && item[0] == '.' && item[1] == '.')
+		{
+			// move to parent
+			Inode* parent = getParent(current);
+
+			if(!parent)
+				return nullptr; // CRITICAL ERROR NO PARENT FOUND, FILESYSTEM BROKEN!!
+
+			delete current;
+			current = parent;
 		}
 		else
 		{
-			// use indirect
-			// TODO: implement pl0x
+			// search for item in current node, move to it
+			Inode* child = findChild(current, item);
+
+			if(!child)
+				return nullptr; // CHILD NOT FOUND!
+
+			delete current;
+			current = child;
 		}
 	}
-	return cur_dir;
+	return current;
 }
 
 
@@ -332,3 +319,36 @@ int FileSystem::close(File file)
 {
 	return open_files.erase(file); 
 }
+
+
+
+int FileSystem::mkdir(const std::string& dir)
+{
+	int last_slash = -1;
+	for(unsigned i = 0; i < dir.size(); i++)
+		if(dir[i] == '/')
+			last_slash = i;
+	if(last_slash == -1 || dir.size() < 2) // bad parameter
+		return 0;
+
+	std::string to_create = dir.substr(last_slash, dir.size()-last_slash);
+
+	std::string dir_path = dir.substr(0, last_slash);
+
+	Inode* parent = parsePath(dir_path);
+	if(!parent) // could not find parent
+		return 0;
+
+
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+

@@ -18,8 +18,8 @@ public:
 	/*
 	* writes "num_bytes" bytes to the device starting at "start"
 	* returns error code:
-	*	0 if success
-	*	1 if trying to write outside of device in some way
+	*	1 if success
+	*	0 if trying to write outside of device in some way
 	 */
 	int write(int block, const char* data, int num_bytes, int start = 0);
 

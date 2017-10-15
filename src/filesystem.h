@@ -78,7 +78,8 @@ class FileSystem
 
 	std::string getPathTo(Inode inode);
 	Inode* getInode(Address address);
-	Inode* getDirectoryFromAbsolute(const std::string& dir);
+	Inode* getParent(Inode* node);
+	Inode* findChild(Inode* node, const std::string& child);
 
 	Inode* parsePath(const std::string& path);
 
