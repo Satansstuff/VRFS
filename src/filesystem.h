@@ -12,6 +12,7 @@
 
 enum filecodes
 {
+	OPEN_OK = 5,
 	DELETE_OK = 4,
 	CREATE_OK = 3,
 	READ_OK = 2,
@@ -105,6 +106,7 @@ public:
 	int chmod(const std::string &str, bool r, bool w);
 	int mkdir(const std::string &dir);
 	int cd(const std::string &dir);
+	std::string ls(const std::string &dir = "");
 
 	File open(const std::string& file);
 

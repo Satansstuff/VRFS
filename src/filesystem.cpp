@@ -18,6 +18,8 @@ FileSystem::FileSystem()
 	inode_bitmap.set(0, true);
 	writeInodeBitmap();
 	writeInodeToBlock(&root_dir);
+
+	current_directory = 0;
 }
 
 
@@ -202,6 +204,7 @@ int FileSystem::reserveFreeBlock()
 		{
 			address = i;
 			block_bitmap.set(i, true);
+			break;
 		}
 	}
 	writeBlockBitmap();
@@ -211,6 +214,7 @@ int FileSystem::reserveFreeBlock()
 int FileSystem::reserveFreeInode()
 {
 	readInodeBitmap();
+	std::cout << "Reserving inode\n";
 	int address = -1;
 	for(size_t i = 0; i < NUM_INODES; i++)
 	{
@@ -218,6 +222,7 @@ int FileSystem::reserveFreeInode()
 		{
 			address = i;
 			inode_bitmap.set(i, true);
+			break;
 		}
 	}
 	writeInodeBitmap();
@@ -238,10 +243,10 @@ File FileSystem::open(const std::string& file)
 		returncode = filecodes::FILE_NOT_FOUND;
 	else if(!node->attributes[1])
 		returncode = filecodes::ACCESS_DENIED;
-	if(open_files.emplace(getNewFileID(),*node))
+	/*if(open_files.emplace(getNewFileID(),*node))
 		returncode = filecodes::OPEN_OK;
 	else
-		returncode = filecodes::FILE_ERROR;
+		returncode = filecodes::FILE_ERROR;*/
 	delete node;
 	return returncode;
 }
@@ -408,30 +413,45 @@ int FileSystem::mkdir(const std::string& dir)
 	for(unsigned i = 0; i < dir.size(); i++)
 		if(dir[i] == '/')
 			last_slash = i;
-	if(last_slash == -1 || dir.size() < 2) // bad parameter
-		return 0;
 
-	std::string to_create = dir.substr(last_slash, dir.size()-last_slash);
 
-	std::string dir_path = dir.substr(0, last_slash);
+	std::string to_create;
+	std::string dir_path;
 
-	Inode* parent = parsePath(dir_path);
-	if(!parent) // could not find parent
-		return 0;
 
-	readInodeBitmap();
-	Address adr = 0;
-	for(size_t i = 0; i < NUM_INODES; i++)
+	Inode* parent = nullptr;
+
+	if(last_slash == -1)
 	{
-		if(!inode_bitmap[i])
-		{
-			adr = i;
-			inode_bitmap.set(i, true);
-		}
+		to_create = dir;
+		parent = getInode(current_directory);
 	}
-	writeInodeBitmap();
-	if(adr == 0)
-		return 0; // max number of files and directories (root == 0)
+	else
+	{
+		to_create = dir.substr(last_slash, dir.size()-last_slash);
+		dir_path = dir.substr(0, last_slash);
+		parent = parsePath(dir_path);
+	}
+
+	//std::cout << "DIR: " << dir << "\n";
+	//std::cout << "TO_CREATE: " << to_create << "\n";
+	//std::cout << "DIR_PATH: " << dir_path << "\n";
+
+	if(!parent)
+	{
+		// could not find parent
+		//std::cout << "Could not find parent\n";
+		return 0;
+	}
+
+	int address = reserveFreeInode();
+	if(address < 0)
+	{
+		//std::cout << "Could not reserve inode " << address << " \n";
+		return 0; // max number of files and directories
+	}
+
+	Address adr = address;
 
 	Inode new_dir;
 	new_dir.attributes.set(0, true);
@@ -458,11 +478,68 @@ int FileSystem::cd(const std::string& dir)
 	if(!to_enter)
 		return 0; // nothing found
 
+	if(!to_enter->attributes[0])
+		return 0; // not a directory
+
 	current_directory = to_enter->addresses[1];
 	return 1;
 }
 
+std::string FileSystem::ls(const std::string &dir)
+{
+	std::string result;
 
+	Inode* to_view = nullptr;
+
+	if(dir.size() == 0)
+	{
+		to_view = getInode(current_directory);
+	}
+	else
+	{
+		to_view = parsePath(dir);
+		if(!to_view)
+			return "ERROR: '" + dir + "' not found";
+		std::string path = getPathTo(*to_view);
+		if(!to_view->attributes[0])
+			return "ERROR: '" + path + "' not a directory";
+	}
+
+
+	for(size_t i = 0; i < to_view->numBytes && i < NUM_ADDRESSES - 2; i++)
+	{
+		Inode* child = getInode(to_view->addresses[i + 2]);
+		if(!child)
+			continue; // FILESYSTEM BROKEN
+		std::string name(child->name);
+
+		result += name + "\n";
+
+		delete child;
+	}
+
+
+	// check in indirect
+	if(to_view->numBytes >= NUM_ADDRESSES - 2)
+	{
+		size_t num_in_block = to_view->numBytes - NUM_ADDRESSES + 2;
+		int block = to_view->indirect_address + NUM_INODE_BLOCKS + 1;
+		Address* buffer = new Address[num_in_block];
+		memory.read(block, (char*)buffer, sizeof(Address)*num_in_block);
+		for(size_t i = 0; i < num_in_block; i++)
+		{
+			Inode* child = getInode(buffer[i]);
+			if(!child)
+				continue; // FILESYSTEM BROKEN
+			std::string name(child->name);
+
+			result += name + "\n";
+
+			delete child;
+		}
+	}
+	return result;
+}
 
 
 

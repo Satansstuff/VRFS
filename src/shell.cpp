@@ -33,6 +33,10 @@ int main(void) {
     bool bRun = true;
 
     do {
+    	for(size_t i = 0; i < MAXCOMMANDS; i++)
+    	{
+			commandArr[i] = "";
+    	}
         std::cout << user << ":" << currentDir << "$ ";
         getline(std::cin, userCommand);
 
@@ -49,6 +53,7 @@ int main(void) {
                 break;
             case 2: // ls
                 std::cout << "Listing directory" << std::endl;
+                std::cout << f.ls(commandArr[1]) << std::endl;
                 break;
             case 3: // create
                 break;
@@ -67,8 +72,12 @@ int main(void) {
             case 10: // mv
                 break;
             case 11: // mkdir
+            	if(!f.mkdir(commandArr[1]))
+            		std::cout << "Could not create directory" << std::endl;
                 break;
             case 12: // cd
+            	if(!f.cd(commandArr[1]))
+            		std::cout << "Directory not found" << std::endl;
                 break;
             case 13: // pwd
                 break;
