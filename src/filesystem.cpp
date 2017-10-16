@@ -372,6 +372,36 @@ int FileSystem::close(File file)
 	return open_files.erase(file); 
 }
 
+int FileSystem::addAddressToDir(Inode* parent, Address child)
+{
+	if(parent->numBytes < NUM_ADDRESSES - 2 - 1)
+	{
+		parent->addresses[parent->numBytes + 2] = child;
+	}
+	else if(parent->numBytes == NUM_ADDRESSES - 2 - 1)
+	{
+		int block_adr = reserveFreeBlock();
+		if(block_adr < 0)
+			return DISK_FULL;
+
+		parent->indirect_address = block_adr;
+
+		int block = block_adr + NUM_INODE_BLOCKS + 1;
+		memory.write(block, (char*)&child, sizeof(Address));
+	}
+	else
+	{
+		size_t num_in_block = parent->numBytes - NUM_ADDRESSES + 2;
+		if(num_in_block >= BLOCK_SIZE)
+			return FILE_ERROR;
+
+		int block = parent->indirect_address + NUM_INODE_BLOCKS + 1;
+		memory.write(block, (char*)&child, sizeof(Address), num_in_block*sizeof(Address));
+	}
+	parent->numBytes++;
+	return 0;
+}
+
 int FileSystem::mkdir(const std::string& dir)
 {
 	int last_slash = -1;
@@ -411,7 +441,13 @@ int FileSystem::mkdir(const std::string& dir)
 	new_dir.addresses[0] = parent->addresses[1];
 	new_dir.addresses[1] = adr;
 
-	// add adr to parent somehow
+	addAddressToDir(parent, adr);
+
+
+	writeInodeToBlock(parent);
+	writeInodeToBlock(&new_dir);
+
+	delete parent;
 
 	return 1;
 }

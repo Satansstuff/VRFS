@@ -83,6 +83,7 @@ class FileSystem
 
 	Inode* parsePath(const std::string& path);
 
+	int addAddressToDir(Inode* parent, Address child);
 
 	// returns -1 if full
 	int reserveFreeBlock();
