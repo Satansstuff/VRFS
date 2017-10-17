@@ -70,24 +70,20 @@ std::string FileSystem::getPathTo(Inode inode)
 	Inode* curr_inode = new Inode(inode);
 	while(true)
 	{
-		std::string current(curr_inode->name);
-		result = current + "/" +  result;
-
-		Inode* parent = getParent(&inode);
-		if(parent)
+		if(curr_inode->addresses[1] == 0)
 		{
-			if(parent->addresses[1] == 0)
-			{
-				result = "/" + result;
-				return result;
-			}
+			if(result.size() == 0)
+				result += "/";
 			delete curr_inode;
-			curr_inode = parent;
+			return result;
 		}
 		else
 		{
-			// HORRIBLE ERROR, parent not found!
-			return "ERROR";
+			std::string name(curr_inode->name);
+			result = "/" + name + result;
+			Inode* parent = getInode(curr_inode->addresses[0]);
+			delete curr_inode;
+			curr_inode = parent;
 		}
 	}
 }
