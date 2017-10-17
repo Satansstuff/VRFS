@@ -80,6 +80,7 @@ int main(void) {
             		std::cout << "Directory not found" << std::endl;
                 break;
             case 13: // pwd
+                std::cout << f.getCurrentDirectory() << std::endl;
                 break;
             case 14: // help
                 std::cout << help() << std::endl;

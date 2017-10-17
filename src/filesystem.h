@@ -100,7 +100,7 @@ public:
 	~FileSystem();
 
 	int create(const std::string& file);
-
+	std::string getCurrentDirectory();
 	int remove(const std::string& file);
 
 	int chmod(const std::string &str, bool r, bool w);

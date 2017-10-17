@@ -57,8 +57,13 @@ Inode* FileSystem::getInode(Address address)
 	}
 	return result;
 }
-
-
+std::string FileSystem::getCurrentDirectory()
+{
+	Inode *node = getInode(current_directory);
+	std::string path = getPathTo(*node);
+	delete node;
+	return path;
+}
 std::string FileSystem::getPathTo(Inode inode)
 {
 	std::string result;
