@@ -10,6 +10,7 @@
 #define NUM_ADDRESSES 8
 #define FILENAME_SIZE 40
 
+#define FILE_INVALID 0
 enum filecodes
 {
 	OPEN_OK = 5,
@@ -91,7 +92,7 @@ class FileSystem
 	int reserveFreeInode();
 
 	int writeInodeToBlock(Inode *node);
-	unsigned long counter = 0;
+	unsigned long counter = 1;
 	unsigned long getNewFileID();
 public:
 

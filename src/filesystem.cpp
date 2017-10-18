@@ -241,15 +241,13 @@ File FileSystem::open(const std::string& file)
 	Inode *node = this->parsePath(file);
 	int returncode = filecodes::FILE_ERROR;
 	if(!node)
-		returncode = filecodes::FILE_NOT_FOUND;
+		return FILE_INVALID;
 	else if(!node->attributes[1])
-		returncode = filecodes::ACCESS_DENIED;
-	/*if(open_files.emplace(getNewFileID(),*node))
-		returncode = filecodes::OPEN_OK;
-	else
-		returncode = filecodes::FILE_ERROR;*/
+		return FILE_INVALID;
+	FILE newID = getNewFileID();
+	open_files.emplace(newID,*node);
 	delete node;
-	return returncode;
+	return newID;
 }
 int FileSystem::write(File file, const std::string& data)
 {
