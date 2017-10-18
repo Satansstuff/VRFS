@@ -27,17 +27,19 @@ int main(void) {
 	// </DEBUG>
 
 	std::string userCommand, commandArr[MAXCOMMANDS];
-	std::string user = "user@DV1492";    // Change this if you want another user to be displayed
+	std::string user = "[user@DV1492";    // Change this if you want another user to be displayed
 	std::string currentDir = "/";    // current directory, used for output
 
     bool bRun = true;
 
     do {
+	currentDir = f.currDirName();
+
     	for(size_t i = 0; i < MAXCOMMANDS; i++)
     	{
 			commandArr[i] = "";
     	}
-        std::cout << user << ":" << currentDir << "$ ";
+        std::cout << user << " " << currentDir << "]$ ";
         getline(std::cin, userCommand);
 
         int nrOfCommands = parseCommandString(userCommand, commandArr);

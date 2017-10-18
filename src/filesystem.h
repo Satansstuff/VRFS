@@ -107,6 +107,7 @@ public:
 	int mkdir(const std::string &dir);
 	int cd(const std::string &dir);
 	std::string ls(const std::string &dir = "");
+	std::string currDirName();
 
 	File open(const std::string& file);
 

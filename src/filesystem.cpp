@@ -542,7 +542,13 @@ std::string FileSystem::ls(const std::string &dir)
 	return result;
 }
 
-
+std::string FileSystem::currDirName()
+{
+	Inode* current = getInode(current_directory);
+	std::string result(current->name);
+	delete current;
+	return result;
+}
 
 
 
