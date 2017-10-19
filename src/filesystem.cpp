@@ -146,6 +146,9 @@ Inode* FileSystem::findChild(Inode* node, const std::string& child_name)
 
 Inode* FileSystem::parsePath(const std::string& path)
 {
+	if(path.size() == 0)
+		return nullptr;
+
 	Inode* current = nullptr;
 	if(path[0] == '/')
 	{
@@ -215,7 +218,7 @@ int FileSystem::reserveFreeBlock()
 int FileSystem::reserveFreeInode()
 {
 	readInodeBitmap();
-	std::cout << "Reserving inode\n";
+	//std::cout << "Reserving inode\n";
 	int address = -1;
 	for(size_t i = 0; i < NUM_INODES; i++)
 	{
@@ -376,6 +379,8 @@ void FileSystem::freeInode(Address inode)
 
 int FileSystem::removeAddressFromDir(Inode* parent, Address child)
 {
+	if(!parent)
+		return NOT_FOUND;
 	if(parent->numBytes == 0)
 		return DELETE_OK;
 
@@ -408,6 +413,7 @@ int FileSystem::removeAddressFromDir(Inode* parent, Address child)
 				index = i;
 				found = true;
 				indirect = true;
+				break;
 			}
 		}
 		delete buffer;
@@ -417,23 +423,27 @@ int FileSystem::removeAddressFromDir(Inode* parent, Address child)
 	{
 		if(parent->numBytes <= num_dir_addr)
 		{
-			parent->addresses[index] = parent->addresses[parent->numBytes-1];
-			parent->numBytes--;
-			writeInodeToBlock(parent);
+			//std::cout << "REMOVE 1, index: "<< index << std::endl;
+			//std::cout << parent->addresses[index] << " = " << parent->addresses[parent->numBytes-1 + 2] << std::endl;
+			parent->addresses[index] = parent->addresses[parent->numBytes-1 + 2];
 		}
 		else if(parent->numBytes == num_dir_addr + 1)
 		{
 			if(!indirect)
 			{
+				//std::cout << "REMOVE 2" << std::endl;
 				Address last;
 				int block = parent->indirect_address + NUM_INODE_BLOCKS + 1;
 				memory.read(block, (char*)&last, sizeof(Address));
 				parent->addresses[index] = last;
 			}
+			//std::cout << "REMOVE 3" << std::endl;
+
 			freeBlock(parent->indirect_address);
 		}
 		else
 		{
+			//std::cout << "REMOVE 4" << std::endl;
 			Address last;
 			size_t num_in_block = parent->numBytes - NUM_ADDRESSES + 2;
 			int block = parent->indirect_address + NUM_INODE_BLOCKS + 1;
@@ -441,20 +451,22 @@ int FileSystem::removeAddressFromDir(Inode* parent, Address child)
 
 			if(indirect)
 			{
+				//std::cout << "REMOVE 5" << std::endl;
 				memory.write(block, (char*)&last, sizeof(Address), sizeof(Address)*index);
 			}
 			else
 			{
+				//std::cout << "REMOVE 6" << std::endl;
 				parent->addresses[index] = last;
 			}
 		}
 		parent->numBytes--;
+		writeInodeToBlock(parent);
 	}
 	else
 	{
 		return NOT_FOUND;
 	}
-	writeInodeToBlock(parent);
 
 	return DELETE_OK;
 }
@@ -462,17 +474,16 @@ int FileSystem::removeAddressFromDir(Inode* parent, Address child)
 int FileSystem::removeDir(Inode* dir)
 {
 	if(dir->numBytes > 0)
-	{
 		return NOT_EMPTY_FOLDER;
-	}
-	else
-	{
-		freeInode(dir->addresses[1]);
-		Inode* parent = getInode(dir->addresses[0]);
-		removeAddressFromDir(parent, dir->addresses[1]);
-		delete parent;
-		return DELETE_OK;
-	}
+	if(dir->addresses[1] == 0)
+		return CANT_DELETE_ROOT;
+
+
+	freeInode(dir->addresses[1]);
+	Inode* parent = getInode(dir->addresses[0]);
+	removeAddressFromDir(parent, dir->addresses[1]);
+	delete parent;
+	return DELETE_OK;
 }
 
 int FileSystem::removeFile(Inode* toRemove)
@@ -531,11 +542,11 @@ int FileSystem::close(File file)
 
 int FileSystem::addAddressToDir(Inode* parent, Address child)
 {
-	if(parent->numBytes < NUM_ADDRESSES - 2 - 1)
+	if(parent->numBytes <= NUM_ADDRESSES - 2 - 1)
 	{
 		parent->addresses[parent->numBytes + 2] = child;
 	}
-	else if(parent->numBytes == NUM_ADDRESSES - 2 - 1)
+	else if(parent->numBytes == NUM_ADDRESSES - 2)
 	{
 		int block_adr = reserveFreeBlock();
 		if(block_adr < 0)
@@ -634,6 +645,7 @@ int FileSystem::cd(const std::string& dir)
 		return 0; // not a directory
 
 	current_directory = to_enter->addresses[1];
+	delete to_enter;
 	return 1;
 }
 
@@ -691,6 +703,9 @@ std::string FileSystem::ls(const std::string &dir)
 		}
 		delete buffer;
 	}
+
+	delete to_view;
+
 	return result;
 }
 
@@ -712,8 +727,8 @@ int FileSystem::chmod(const std::string &str, bool r, bool w)
 	}
 	else
 	{
-		node->attributes.set(1,true);
-		node->attributes.set(2,true);
+		node->attributes.set(1,r);
+		node->attributes.set(2,w);
 	}
 	writeInodeToBlock(node);
 	delete node;
