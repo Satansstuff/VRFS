@@ -548,7 +548,18 @@ std::string FileSystem::currDirName()
 	return result;
 }
 
-
-
-
-
+int FileSystem::chmod(const std::string &str, bool r, bool w)
+{
+	Inode *node = parsePath(str);
+	if(node->attributes[0])
+	{
+		delete node;
+		return -1;
+	}
+	else
+	{
+		node->attributes[1] = r;
+		node->attributes[2] = w;
+	}
+	delete node;
+}
