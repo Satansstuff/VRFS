@@ -146,11 +146,12 @@ Inode* FileSystem::findChild(Inode* node, const std::string& child_name)
 
 Inode* FileSystem::parsePath(const std::string& path)
 {
-	if(path.size() == 0)
-		return nullptr;
-
 	Inode* current = nullptr;
-	if(path[0] == '/')
+	if(path.size() == 0)
+	{
+		current = getInode(current_directory);
+	}
+	else if(path[0] == '/')
 	{
 		// start with root
 		current = getInode(0);
@@ -251,30 +252,43 @@ int FileSystem::create(const std::string& file)
 		return -1;
 	}
 	Inode node;
+	node.attributes.set(0, false);
 	node.addresses[1] = inode_addr;
 	std::size_t last = file.find_last_of("/\\");
-	Inode *parent = parsePath(file.substr(0,last));
-	//node.name = file.substr(1,last).c_str();
+
+	Inode* parent = nullptr;
+
+	if(last > file.size())
+	{
+		last = 0;
+		parent = parsePath(file.substr(0,last));
+	}
+	else
+	{
+		parent = parsePath(file.substr(0,last));
+	}
+	std::cout << "substr: " << file.substr(last) << "\n";
+	std::cout << "substr: " << file.substr(0, last) << "\n";
+
 	if(!parent)
 	{
 		//Föräldern finns inte
 		delete parent;
 		return -1;
 	}
-	else
-	{
-		node.addresses[0] = parent->addresses[1];
-	}
-	if(parent->numBytes > NUM_ADDRESSES - 2)
-	{
-		parent->addresses[parent->numBytes + 2] = inode_addr;
-		parent->numBytes++;
-	}
+
+	std::string to_create = file.substr(last);
+	node.addresses[0] = parent->addresses[1];
+	strcpy(node.name, to_create.c_str());
+
+	addAddressToDir(parent, node.addresses[1]);
 	writeInodeToBlock(parent);
 	delete parent;
 	writeInodeToBlock(&node);
 	return 1;
 }
+
+
 File FileSystem::open(const std::string& file)
 {
 	Inode *node = this->parsePath(file);
@@ -637,7 +651,10 @@ int FileSystem::mkdir(const std::string& dir)
 
 int FileSystem::cd(const std::string& dir)
 {
-	Inode* to_enter = parsePath(dir);
+	std::string directory = dir;
+	if(dir.size() == 0)
+		directory = "/";
+	Inode* to_enter = parsePath(directory);
 	if(!to_enter)
 		return 0; // nothing found
 
@@ -651,7 +668,8 @@ int FileSystem::cd(const std::string& dir)
 
 std::string FileSystem::ls(const std::string &dir)
 {
-	std::string result;
+	std::string dirs;
+	std::string files;
 
 	Inode* to_view = nullptr;
 
@@ -676,8 +694,10 @@ std::string FileSystem::ls(const std::string &dir)
 		if(!child)
 			continue; // FILESYSTEM BROKEN
 		std::string name(child->name);
-
-		result += name + "\n";
+		if(child->attributes[0])
+			dirs += "\n\t" + name;
+		else
+			files += "\n\t" + name;
 
 		delete child;
 	}
@@ -697,7 +717,10 @@ std::string FileSystem::ls(const std::string &dir)
 				continue; // FILESYSTEM BROKEN
 			std::string name(child->name);
 
-			result += name + "\n";
+			if(child->attributes[0])
+				dirs += "\n\t" + name;
+			else
+				files += "\n\t" + name;
 
 			delete child;
 		}
@@ -705,8 +728,13 @@ std::string FileSystem::ls(const std::string &dir)
 	}
 
 	delete to_view;
+	std::string result;
+	if(dirs.size() != 0)
+		dirs = "Directories:" + dirs + "\n";
+	if(files.size() != 0)
+		files = "Files:" + files + "\n";
 
-	return result;
+	return dirs + files;
 }
 
 std::string FileSystem::currDirName()

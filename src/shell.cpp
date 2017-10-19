@@ -55,7 +55,7 @@ int main(void) {
                 break;
             case 2: // ls
                 std::cout << "Listing directory" << std::endl;
-                std::cout << f.ls(commandArr[1]) << std::endl;
+                std::cout << f.ls(commandArr[1]);
                 break;
             case 3: // create
                 if(!f.create(commandArr[1]))
