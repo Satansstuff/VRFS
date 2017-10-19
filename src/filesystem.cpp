@@ -253,7 +253,7 @@ int FileSystem::write(File file, const std::string& data)
 {
 	if(!file)
 	{
-		return filecodes::FILE_NOT_FOUND;
+		return filecodes::NOT_FOUND;
 	}
 	auto fptr = open_files.find(file);
 	if(fptr == open_files.end())
@@ -325,26 +325,127 @@ int FileSystem::writeInodeToBlock(Inode *node)
 	memory.write(block, (char*)node, sizeof(Inode), inodes_out*sizeof(Inode));
 	return 1;
 }
-int FileSystem::remove(const std::string& file)
+
+void FileSystem::freeBlock(Address block)
 {
-	Inode *toRemove = parsePath(file);
-	auto address = toRemove->addresses[1];
-	if(!toRemove)
+	readBlockBitmap();
+	block_bitmap.set(block, false);
+	writeBlockBitmap();
+}
+void FileSystem::freeInode(Address inode)
+{
+	readInodeBitmap();
+	inode_bitmap.set(inode, false);
+	writeInodeBitmap();
+}
+
+int FileSystem::removeAddressFromDir(Inode* parent, Address child)
+{
+	if(parent->numBytes == 0)
+		return DELETE_OK;
+
+
+	size_t num_dir_addr = NUM_ADDRESSES - 2;
+
+	bool found = false;
+	bool indirect = false;
+	size_t index = 0;
+	for(size_t i = 0; i < parent->numBytes && i < num_dir_addr; i++)
 	{
-		return filecodes::FILE_NOT_FOUND;
+		if(parent->addresses[i+2] == child)
+		{
+			index = i+2;
+			found = true;
+			break;
+		}
 	}
+	if(!found && parent->numBytes > num_dir_addr)
+	{
+		// search in indirect
+		size_t num_in_block = parent->numBytes - NUM_ADDRESSES + 2;
+		int block = parent->indirect_address + NUM_INODE_BLOCKS + 1;
+		Address* buffer = new Address[num_in_block];
+		memory.read(block, (char*)buffer, sizeof(Address)*num_in_block);
+		for(size_t i = 0; i < num_in_block; i++)
+		{
+			if(buffer[i] == child)
+			{
+				index = i;
+				found = true;
+				indirect = true;
+			}
+		}
+		delete buffer;
+	}
+
+	if(found)
+	{
+		if(parent->numBytes <= num_dir_addr)
+		{
+			parent->addresses[index] = parent->addresses[parent->numBytes-1];
+			parent->numBytes--;
+			writeInodeToBlock(parent);
+		}
+		else if(parent->numBytes == num_dir_addr + 1)
+		{
+			if(!indirect)
+			{
+				Address last;
+				int block = parent->indirect_address + NUM_INODE_BLOCKS + 1;
+				memory.read(block, (char*)&last, sizeof(Address));
+				parent->addresses[index] = last;
+			}
+			freeBlock(parent->indirect_address);
+		}
+		else
+		{
+			Address last;
+			size_t num_in_block = parent->numBytes - NUM_ADDRESSES + 2;
+			int block = parent->indirect_address + NUM_INODE_BLOCKS + 1;
+			memory.read(block, (char*)&last, sizeof(Address), sizeof(Address)*(num_in_block-1));
+
+			if(indirect)
+			{
+				memory.write(block, (char*)&last, sizeof(Address), sizeof(Address)*index);
+			}
+			else
+			{
+				parent->addresses[index] = last;
+			}
+		}
+		parent->numBytes--;
+	}
+	else
+	{
+		return NOT_FOUND;
+	}
+	writeInodeToBlock(parent);
+
+	return DELETE_OK;
+}
+
+int FileSystem::removeDir(Inode* dir)
+{
+	if(dir->numBytes > 0)
+	{
+		return NOT_EMPTY_FOLDER;
+	}
+	else
+	{
+		freeInode(dir->addresses[1]);
+		Inode* parent = getInode(dir->addresses[0]);
+		removeAddressFromDir(parent, dir->addresses[1]);
+		delete parent;
+		return DELETE_OK;
+	}
+}
+
+int FileSystem::removeFile(Inode* toRemove)
+{
+	auto address = toRemove->addresses[1];
 	if(!toRemove->attributes[2])
 	{
 		return filecodes::ACCESS_DENIED;
-	}
-	if(toRemove->attributes[0] && toRemove->numBytes != 0)
-	{
-		return filecodes::NOT_EMPTY_FOLDER;
-	}
-	else if(toRemove->attributes[0] && toRemove->numBytes == 0)
-	{
-		//Det är en tom mapp, ta bort.
-		return filecodes::DELETE_OK;
 	}
 	//Sök igenom openfiles så man inte tar bort en fil som är öppen
 	for(auto &inode : open_files)
@@ -368,7 +469,24 @@ int FileSystem::remove(const std::string& file)
 		//indirect
 	}
 	return filecodes::DELETE_OK;
+}
 
+int FileSystem::remove(const std::string& file)
+{
+	Inode *toRemove = parsePath(file);
+	if(!toRemove)
+	{
+		return filecodes::NOT_FOUND;
+	}
+
+	if(toRemove->attributes[0])
+	{
+		return removeDir(toRemove);
+	}
+	else
+	{
+		return removeFile(toRemove);
+	}
 }
 
 int FileSystem::close(File file)
@@ -519,7 +637,7 @@ std::string FileSystem::ls(const std::string &dir)
 
 
 	// check in indirect
-	if(to_view->numBytes >= NUM_ADDRESSES - 2)
+	if(to_view->numBytes > NUM_ADDRESSES - 2)
 	{
 		size_t num_in_block = to_view->numBytes - NUM_ADDRESSES + 2;
 		int block = to_view->indirect_address + NUM_INODE_BLOCKS + 1;
@@ -536,6 +654,7 @@ std::string FileSystem::ls(const std::string &dir)
 
 			delete child;
 		}
+		delete buffer;
 	}
 	return result;
 }

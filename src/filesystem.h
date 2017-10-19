@@ -18,13 +18,13 @@ enum filecodes
 	CREATE_OK = 3,
 	READ_OK = 2,
 	WRITE_OK = 1,
-	FILE_NOT_FOUND = 0,
+	NOT_FOUND = 0,
 	FILE_NOT_OPEN = -1,
 	ACCESS_DENIED = -2,
 	DISK_FULL = -3,
 	FILE_IS_OPEN = -4,
 	NOT_EMPTY_FOLDER = -5,
-	FILE_ERROR = -6
+	FILE_ERROR = -6,
 };
 
 #define Address unsigned short
@@ -86,10 +86,15 @@ class FileSystem
 	Inode* parsePath(const std::string& path);
 
 	int addAddressToDir(Inode* parent, Address child);
+	int removeAddressFromDir(Inode* parent, Address child);
+	int removeFile(Inode* file);
+	int removeDir(Inode* dir);
 
 	// returns -1 if full
 	int reserveFreeBlock();
 	int reserveFreeInode();
+	void freeBlock(Address block);
+	void freeInode(Address inode);
 
 	int writeInodeToBlock(Inode *node);
 	File counter = 1;
