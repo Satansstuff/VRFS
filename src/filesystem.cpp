@@ -88,7 +88,7 @@ std::string FileSystem::getPathTo(Inode inode)
 	}
 }
 
-unsigned long FileSystem::getNewFileID()
+File FileSystem::getNewFileID()
 {
 	return counter++;
 }
@@ -244,7 +244,7 @@ File FileSystem::open(const std::string& file)
 		return FILE_INVALID;
 	else if(!node->attributes[1])
 		return FILE_INVALID;
-	FILE newID = getNewFileID();
+	File newID = getNewFileID();
 	open_files.emplace(newID,*node);
 	delete node;
 	return newID;

@@ -93,7 +93,7 @@ class FileSystem
 
 	int writeInodeToBlock(Inode *node);
 	File counter = 1;
-	unsigned long getNewFileID();
+	File getNewFileID();
 public:
 
 	FileSystem();
