@@ -558,8 +558,10 @@ int FileSystem::chmod(const std::string &str, bool r, bool w)
 	}
 	else
 	{
-		node->attributes[1] = r;
-		node->attributes[2] = w;
+		node->attributes.set(1,true);
+		node->attributes.set(2,true);
 	}
+	writeInodeToBlock(node);
 	delete node;
+	return 1;
 }

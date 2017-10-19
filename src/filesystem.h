@@ -92,7 +92,7 @@ class FileSystem
 	int reserveFreeInode();
 
 	int writeInodeToBlock(Inode *node);
-	unsigned long counter = 1;
+	File counter = 1;
 	unsigned long getNewFileID();
 public:
 
