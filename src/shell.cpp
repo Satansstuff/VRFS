@@ -58,6 +58,8 @@ int main(void) {
                 std::cout << f.ls(commandArr[1]) << std::endl;
                 break;
             case 3: // create
+                if(!f.create(commandArr[1]))
+                    std::cout << "Could not create file" << std::endl;
                 break;
             case 4: // cat
                 break;
