@@ -234,12 +234,47 @@ int FileSystem::reserveFreeInode()
 
 int FileSystem::create(const std::string& file)
 {
-	return 0;
+	Inode *testnode = parsePath(file);
+	if(testnode)
+	{
+		delete testnode;
+		//Filen finns redan
+		return -1;
+	}
+	int inode_addr = reserveFreeInode();
+	if(!inode_addr)
+	{
+		//Fullt
+		return -1;
+	}
+	Inode node;
+	node.addresses[1] = inode_addr;
+	std::size_t last = file.find_last_of("/\\");
+	Inode *parent = parsePath(file.substr(0,last));
+	//node.name = file.substr(1,last).c_str();
+	if(!parent)
+	{
+		//Föräldern finns inte
+		delete parent;
+		return -1;
+	}
+	else
+	{
+		node.addresses[0] = parent->addresses[1];
+	}
+	if(parent->numBytes > NUM_ADDRESSES - 2)
+	{
+		parent->addresses[parent->numBytes + 2] = inode_addr;
+		parent->numBytes++;
+	}
+	writeInodeToBlock(parent);
+	delete parent;
+	writeInodeToBlock(&node);
+	return 1;
 }
 File FileSystem::open(const std::string& file)
 {
 	Inode *node = this->parsePath(file);
-	int returncode = filecodes::FILE_ERROR;
 	if(!node)
 		return FILE_INVALID;
 	else if(!node->attributes[1])
