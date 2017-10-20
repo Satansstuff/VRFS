@@ -377,24 +377,22 @@ int FileSystem::write(File file, const std::string& data)
 	return filecodes::WRITE_OK;
 }
 
-std::string read(File file)
+std::string FileSystem::read(File file)
 {
 	std::string result;
-
-
 	if(!file)
 	{
-		return filecodes::NOT_FOUND;
+		return std::to_string(filecodes::NOT_FOUND);
 	}
 	auto fptr = open_files.find(file);
 	if(fptr == open_files.end())
 	{
-		return filecodes::FILE_NOT_OPEN;
+		return std::to_string(filecodes::FILE_NOT_OPEN);
 	}
 	Inode of = fptr->second;
 	if(!of.attributes[1])
 	{
-		return filecodes::ACCESS_DENIED;
+		return std::to_string(filecodes::ACCESS_DENIED);
 	}
 	size_t datasize = of.numBytes;
 	unsigned blocksNeeded = std::ceil((double)datasize / BLOCK_SIZE);

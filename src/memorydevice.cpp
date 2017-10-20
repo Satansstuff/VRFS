@@ -1,8 +1,7 @@
-#include "memorydevice.h"
-
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include "memorydevice.h"
 
 MemoryDevice::MemoryDevice()
 {
@@ -55,5 +54,5 @@ int MemoryDevice::read(int block, char* dest, int num_bytes, int start)
 
 void createImage(const std::string& path)
 {
-	ostream file;
+	std::ofstream file(path);
 }
