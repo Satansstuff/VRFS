@@ -243,13 +243,13 @@ int FileSystem::create(const std::string& file)
 	{
 		delete testnode;
 		//Filen finns redan
-		return -1;
+		return ALREADY_EXISTS;
 	}
 	int inode_addr = reserveFreeInode();
 	if(!inode_addr)
 	{
 		//Fullt
-		return -1;
+		return MAX_FILES;
 	}
 	Inode node;
 	node.attributes.set(0, false);
@@ -274,7 +274,7 @@ int FileSystem::create(const std::string& file)
 	{
 		//Föräldern finns inte
 		delete parent;
-		return -1;
+		return FILE_ERROR;
 	}
 
 	std::string to_create = file.substr(last);
@@ -285,7 +285,7 @@ int FileSystem::create(const std::string& file)
 	writeInodeToBlock(parent);
 	delete parent;
 	writeInodeToBlock(&node);
-	return 1;
+	return CREATE_OK;
 }
 
 
@@ -586,6 +586,13 @@ int FileSystem::addAddressToDir(Inode* parent, Address child)
 
 int FileSystem::mkdir(const std::string& dir)
 {
+	Inode* same_name = parsePath(dir);
+	if(same_name)
+	{
+		delete same_name;
+		return ALREADY_EXISTS;
+	}
+
 	int last_slash = -1;
 	for(unsigned i = 0; i < dir.size(); i++)
 		if(dir[i] == '/')
@@ -618,14 +625,14 @@ int FileSystem::mkdir(const std::string& dir)
 	{
 		// could not find parent
 		//std::cout << "Could not find parent\n";
-		return 0;
+		return FILE_ERROR;
 	}
 
 	int address = reserveFreeInode();
 	if(address < 0)
 	{
 		//std::cout << "Could not reserve inode " << address << " \n";
-		return 0; // max number of files and directories
+		return MAX_FILES; // max number of files and directories
 	}
 
 	Address adr = address;
@@ -646,7 +653,7 @@ int FileSystem::mkdir(const std::string& dir)
 
 	delete parent;
 
-	return 1;
+	return CREATE_OK;
 }
 
 int FileSystem::cd(const std::string& dir)

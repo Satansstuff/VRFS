@@ -26,6 +26,8 @@ enum filecodes
 	NOT_EMPTY_FOLDER = -5,
 	FILE_ERROR = -6,
 	CANT_DELETE_ROOT = -7,
+	ALREADY_EXISTS = -8,
+	MAX_FILES = -9,
 };
 
 #define Address unsigned short
