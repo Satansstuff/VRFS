@@ -53,7 +53,26 @@ int MemoryDevice::read(int block, char* dest, int num_bytes, int start)
 }
 
 
-void createImage(const std::string& path)
+void createImage(const std::string& filepath)
 {
-	ostream file;
+	std::ostream file;
+	file.open(filepath);
+	if(!file.is_open())
+	{
+		for(int i = 0; i < NUM_BLOCKS; i++)
+		{
+			file << blocks[i];
+		}
+		file.close();
+	}
+}
+
+void restoreImage(const std::string& filepath)
+{
+	std::ifstream file;
+	file.open(filepath);
+	if(file.is_open())
+	{
+		
+	}
 }
