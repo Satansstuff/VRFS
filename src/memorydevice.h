@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #define NUM_BLOCKS 250
 #define BLOCK_SIZE 512
 
@@ -24,4 +26,7 @@ public:
 	int write(int block, const char* data, int num_bytes, int start = 0);
 
 	int read(int block, char* dest, int num_bytes, int start = 0);
+
+	void createImage(const std::string& dir);
+	void restoreImage(const std::string& dir);
 };

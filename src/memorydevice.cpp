@@ -1,6 +1,8 @@
 #include "memorydevice.h"
 
 #include <cstring>
+#include <iostream>
+#include <fstream>
 
 MemoryDevice::MemoryDevice()
 {
@@ -48,4 +50,10 @@ int MemoryDevice::read(int block, char* dest, int num_bytes, int start)
 	char* to_read = blocks[block] + start;
 	std::memcpy(dest, to_read, num_bytes);
 	return 1;
+}
+
+
+void createImage(const std::string& path)
+{
+	ostream file;
 }

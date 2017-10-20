@@ -311,13 +311,13 @@ int FileSystem::write(File file, const std::string& data)
 		return filecodes::FILE_NOT_OPEN;
 	}
 	Inode of = fptr->second;
-	if(!of.attributes[1] || !of.attributes[2])
+	if(!of.attributes[2])
 	{
 		return filecodes::ACCESS_DENIED;
 	}
 	size_t datasize = data.length() + 1;
 	of.numBytes = datasize;
-	unsigned blocksNeeded = std::ceil(datasize / BLOCK_SIZE);
+	unsigned blocksNeeded = std::ceil((double)datasize / BLOCK_SIZE);
 	if(blocksNeeded > numFreeBlocks())
 	{
 		return filecodes::DISK_FULL;
@@ -376,6 +376,71 @@ int FileSystem::write(File file, const std::string& data)
 	writeInodeToBlock(&of);
 	return filecodes::WRITE_OK;
 }
+
+std::string read(File file)
+{
+	std::string result;
+
+
+	if(!file)
+	{
+		return filecodes::NOT_FOUND;
+	}
+	auto fptr = open_files.find(file);
+	if(fptr == open_files.end())
+	{
+		return filecodes::FILE_NOT_OPEN;
+	}
+	Inode of = fptr->second;
+	if(!of.attributes[1])
+	{
+		return filecodes::ACCESS_DENIED;
+	}
+	size_t datasize = of.numBytes;
+	unsigned blocksNeeded = std::ceil((double)datasize / BLOCK_SIZE);
+	size_t blocks_in = 0;
+
+	char* buffer = new char[BLOCK_SIZE];
+	for(size_t i = 0; i < blocksNeeded && i < NUM_ADDRESSES - 2; i++)
+	{
+		int index = i + 2;
+		int block = of.addresses[index] + NUM_INODE_BLOCKS + 1;
+		int num_bytes = 0;
+		if(blocks_in < blocksNeeded-1)
+			num_bytes = BLOCK_SIZE;
+		else
+			num_bytes = datasize % BLOCK_SIZE;
+
+		memory.read(block, buffer, num_bytes);
+		std::string str(buffer);
+		result += str;
+		blocks_in++;
+	}
+	if(blocksNeeded > NUM_ADDRESSES - 2)
+	{
+		//indirect
+		Address indirect_block = of.indirect_address + NUM_INODE_BLOCKS + 1;
+		for(size_t i = 0; i < blocksNeeded - (NUM_ADDRESSES - 2); i++)
+		{
+			Address address;
+			memory.read(indirect_block, (char*)&address, sizeof(Address), sizeof(Address)*i);
+
+			int block = address + NUM_INODE_BLOCKS + 1;
+			int num_bytes = 0;
+			if(blocks_in < blocksNeeded-1)
+				num_bytes = BLOCK_SIZE;
+			else
+				num_bytes = datasize % BLOCK_SIZE;
+
+			memory.read(block, buffer, num_bytes);
+			std::string str(buffer);
+			result += str;
+			blocks_in++;
+		}
+	}
+	return result;
+}
+
 
 size_t FileSystem::numFreeBlocks()
 {

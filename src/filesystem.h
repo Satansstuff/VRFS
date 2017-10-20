@@ -122,6 +122,7 @@ public:
 	File open(const std::string& file);
 
 	int write(File file, const std::string& data);
+	std::string read(File file);
 
 	int close(File file);
 };
