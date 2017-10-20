@@ -267,8 +267,6 @@ int FileSystem::create(const std::string& file)
 	{
 		parent = parsePath(file.substr(0,last));
 	}
-	std::cout << "substr: " << file.substr(last) << "\n";
-	std::cout << "substr: " << file.substr(0, last) << "\n";
 
 	if(!parent)
 	{
@@ -317,59 +315,80 @@ int FileSystem::write(File file, const std::string& data)
 	{
 		return filecodes::ACCESS_DENIED;
 	}
-	size_t datasize = data.length();
+	size_t datasize = data.length() + 1;
+	of.numBytes = datasize;
 	unsigned blocksNeeded = std::ceil(datasize / BLOCK_SIZE);
-	if(blocksNeeded > AVAILABLE_BLOCKS)
+	if(blocksNeeded > numFreeBlocks())
 	{
 		return filecodes::DISK_FULL;
 	}
 	const char *writable = data.c_str();
-	if(blocksNeeded == 1)
+
+	size_t blocks_in = 0;
+	for(size_t i = 0; i < blocksNeeded && i < NUM_ADDRESSES - 2; i++)
 	{
-		for(size_t i = current_block; i < AVAILABLE_BLOCKS; i++)
+		int new_block = reserveFreeBlock();
+		if(new_block < 0)
+			return DISK_FULL;
+
+		int index = i + 2;
+		of.addresses[index] = new_block;
+		int block = new_block + NUM_INODE_BLOCKS + 1;
+		int num_bytes = 0;
+		if(blocks_in < blocksNeeded-1)
 		{
-			if(!block_bitmap[i])
-			{
-				block_bitmap.set(i, true);
-				memory.write(i + NUM_INODE_BLOCKS + 1, writable, datasize, 0);
-				current_block++;
-				break;
-			}
-			else
-			{
-				current_block++;
-			}
+			num_bytes = BLOCK_SIZE;
 		}
-	}
-	else if(blocksNeeded < NUM_ADDRESSES)
-	{
-		size_t dataToWrite = datasize;
-		for(size_t i = current_block; i < AVAILABLE_BLOCKS; i++)
+		else
 		{
-			if(dataToWrite > 0)
-			{
-				if(block_bitmap[i])
-				{
-					
-				}
-				else
-				{
-					current_block++;
-				}
-			}
-			else
-			{
-				break;
-			}
+			num_bytes = datasize % BLOCK_SIZE;
 		}
+		memory.write(block, &writable[blocks_in*BLOCK_SIZE], num_bytes);
+		blocks_in++;
 	}
-	else
+	if(blocksNeeded > NUM_ADDRESSES - 2)
 	{
-		//Indirect needed
+		//indirect needed
+		int indirect_block = reserveFreeBlock();
+		if(indirect_block < 0)
+			return DISK_FULL;
+		of.indirect_address = indirect_block;
+		for(size_t i = 0; i < blocksNeeded - (NUM_ADDRESSES - 2); i++)
+		{
+			int new_block = reserveFreeBlock();
+			if(new_block < 0)
+				return DISK_FULL;
+
+			Address address = new_block;
+			memory.write(indirect_block, (char*)&address, sizeof(Address), sizeof(Address)*i);
+
+			int block = address + NUM_INODE_BLOCKS + 1;
+			int num_bytes = 0;
+			if(blocks_in < blocksNeeded-1)
+				num_bytes = BLOCK_SIZE;
+			else
+				num_bytes = datasize % BLOCK_SIZE;
+
+			memory.write(block, &writable[blocks_in*BLOCK_SIZE], num_bytes);
+			blocks_in++;
+		}
 	}
 	writeInodeToBlock(&of);
 	return filecodes::WRITE_OK;
 }
+
+size_t FileSystem::numFreeBlocks()
+{
+	readBlockBitmap();
+	size_t result = 0;
+	for(int i = 0; i < AVAILABLE_BLOCKS; i++)
+	{
+		if(!block_bitmap[i])
+			result++;
+	}
+	return result;
+}
+
 int FileSystem::writeInodeToBlock(Inode *node)
 {
 	int block = node->addresses[1] / INODES_PER_BLOCK + 1;

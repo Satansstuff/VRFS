@@ -96,6 +96,7 @@ class FileSystem
 	// returns -1 if full
 	int reserveFreeBlock();
 	int reserveFreeInode();
+	size_t numFreeBlocks();
 	void freeBlock(Address block);
 	void freeInode(Address inode);
 
