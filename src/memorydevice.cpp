@@ -52,7 +52,7 @@ int MemoryDevice::read(int block, char* dest, int num_bytes, int start)
 }
 
 
-void createImage(const std::string& filepath)
+void MemoryDevice::createImage(const std::string& filepath)
 {
 	std::ofstream file;
 	file.open(filepath);
@@ -66,7 +66,7 @@ void createImage(const std::string& filepath)
 	}
 }
 
-void restoreImage(const std::string& filepath)
+void MemoryDevice::restoreImage(const std::string& filepath)
 {
 	std::ifstream file;
 	file.open(filepath);
