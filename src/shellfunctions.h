@@ -36,5 +36,7 @@ public:
 	std::string mv(const std::string& sourcepath, const std::string& destpath);
 
 	std::string chmod(const std::string &file, bool r, bool w);
+
+	std::string remove(const std::string &file);
 };
 

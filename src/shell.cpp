@@ -1,16 +1,17 @@
 #include <iostream>
 #include <sstream>
 #include <cstring>
+#include "shellfunctions.h"
 #include "filesystem.h"
 #include "bitmap.h"
 #include <math.h>
 
 const int MAXCOMMANDS = 8;
-const int NUMAVAILABLECOMMANDS = 15;
+const int NUMAVAILABLECOMMANDS = 16;
 
 std::string availableCommands[NUMAVAILABLECOMMANDS] = {
     "quit","format","ls","create","cat","createImage","restoreImage",
-    "rm","cp","append","mv","mkdir","cd","pwd","help"
+    "rm","cp","append","mv","mkdir","cd","pwd","help","chmod"
 };
 
 /* Takes usercommand from input and returns number of commands, commands are stored in strArr[] */
@@ -23,7 +24,7 @@ std::string help();
 
 int main(void) {
 	// <DEBUG>
-	FileSystem f;
+	ShellFunctions f;
 	// </DEBUG>
 
 	std::string userCommand, commandArr[MAXCOMMANDS];
@@ -31,9 +32,10 @@ int main(void) {
 	std::string currentDir = "/";    // current directory, used for output
 
     bool bRun = true;
+    bool a,b;
 
     do {
-	currentDir = f.currDirName();
+	currentDir = f.pwd();
 
     	for(size_t i = 0; i < MAXCOMMANDS; i++)
     	{
@@ -44,7 +46,7 @@ int main(void) {
 
         int nrOfCommands = parseCommandString(userCommand, commandArr);
         if (nrOfCommands > 0) {
-
+            std::string s;
             int cIndex = findCommand(commandArr[0]);
             switch(cIndex) {
 
@@ -52,13 +54,15 @@ int main(void) {
 				bRun = quit();
                 break;
             case 1: // format
+                f.format();
                 break;
             case 2: // ls
                 std::cout << "Listing directory" << std::endl;
                 std::cout << f.ls(commandArr[1]);
                 break;
             case 3: // create
-                if(!f.create(commandArr[1]))
+                s = f.create(commandArr[1]);
+                if(!s.length())
                     std::cout << "Could not create file" << std::endl;
                 break;
             case 4: // cat
@@ -77,17 +81,40 @@ int main(void) {
             case 10: // mv
                 break;
             case 11: // mkdir
-            	if(!f.mkdir(commandArr[1]))
+                s = f.mkdir(commandArr[1]);
+            	if(!s.length())
             		std::cout << "Could not create directory" << std::endl;
                 break;
             case 12: // cd
-            	if(!f.cd(commandArr[1]))
+                s = f.cd(commandArr[1]);
+            	if(!s.length())
             		std::cout << "Directory not found" << std::endl;
                 break;
             case 13: // pwd
-                std::cout << f.getCurrentDirectory() << std::endl;
+                std::cout << f.pwd() << std::endl;
                 break;
             case 14: // help
+                std::cout << help() << std::endl;
+                break;
+            case 15:
+                //chmod
+                if(commandArr[2] == "true")
+                {
+                    a = true;
+                }
+                else
+                {
+                    a = false;
+                }
+                if(commandArr[3] == "true")
+                {
+                    b = true;
+                }
+                else
+                {
+                    b = false;
+                }
+                s = f.chmod(commandArr[1], a , b);
                 std::cout << help() << std::endl;
                 break;
             default:
@@ -145,6 +172,7 @@ std::string help() {
     helpStr += "* cd     <directory>:               Changes current working directory to <directory>\n";
     helpStr += "* pwd:                              Get current working directory\n";
     helpStr += "* help:                             Prints this help screen\n";
+    helpStr += "* chmod: <directory> <read> <write>: Changes filerights\n";
     return helpStr;
 }
 

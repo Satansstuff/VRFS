@@ -4,11 +4,15 @@
 
 ShellFunctions::ShellFunctions()
 {
-
+	f = new FileSystem();
 }
 ShellFunctions::~ShellFunctions()
 {
-
+	delete f;
+}
+std::string ShellFunctions::remove(const std::string &file)
+{
+	return std::to_string(f->remove(file));
 }
 std::string ShellFunctions::format()
 {
