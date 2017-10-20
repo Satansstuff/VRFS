@@ -54,7 +54,7 @@ int MemoryDevice::read(int block, char* dest, int num_bytes, int start)
 
 void createImage(const std::string& filepath)
 {
-	std::ostream file;
+	std::ofstream file;
 	file.open(filepath);
 	if(!file.is_open())
 	{
