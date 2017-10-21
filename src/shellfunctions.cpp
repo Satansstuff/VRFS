@@ -14,9 +14,10 @@ std::string ShellFunctions::remove(const std::string &file)
 {
 	return std::to_string(f->remove(file));
 }
-std::string ShellFunctions::format()
+void ShellFunctions::format()
 {
-	return std::string("derp");
+	delete f;
+	f = new FileSystem();
 }
 std::string ShellFunctions::pwd()
 {
@@ -64,7 +65,7 @@ std::string ShellFunctions::cd(const std::string& dirpath)
 }
 std::string ShellFunctions::rm(const std::string& filepath)
 {
-	return std::string("derp");
+	return std::to_string(f->remove(filepath));
 }
 std::string ShellFunctions::append(const std::string& filepath1, const std::string& filepath2)
 {
@@ -72,7 +73,24 @@ std::string ShellFunctions::append(const std::string& filepath1, const std::stri
 }
 std::string ShellFunctions::mv(const std::string& sourcepath, const std::string& destpath)
 {
-	return std::string("derp");
+	std::string s;
+	File file = f->open(sourcepath);
+	if(!file)
+	{
+		return std::string("Failed");
+	}
+	s = f->read(file);
+	f->create(destpath);
+	File newfile = f->open(destpath);
+	if(!newfile)
+	{
+		return std::string("Failed");
+	}
+	f->write(newfile,s);
+	f->close(file);
+	f->remove(sourcepath);
+	f->close(newfile);
+	return std::string("");
 }
 std::string ShellFunctions::chmod(const std::string &file, bool r, bool w)
 {

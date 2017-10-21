@@ -62,10 +62,11 @@ int main(void) {
                 break;
             case 3: // create
                 s = f.create(commandArr[1]);
-                if(!s.length())
+                if(s == "")
                     std::cout << "Could not create file" << std::endl;
                 break;
             case 4: // cat
+                std::cout << f.cat(commandArr[1]) << std::endl;
                 break;
             case 5: // createImage
                 break;
@@ -75,6 +76,7 @@ int main(void) {
             	f.remove(commandArr[1]);
                 break;
             case 8: // cp
+                f.cp(commandArr[1], commandArr[2]);
                 break;
             case 9: // append
                 break;

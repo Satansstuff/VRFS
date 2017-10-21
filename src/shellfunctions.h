@@ -9,7 +9,7 @@ class ShellFunctions
 public:
 	ShellFunctions();
 	~ShellFunctions();
-	std::string format();
+	void format();
 
 	std::string createImage(const std::string& filepath);
 
