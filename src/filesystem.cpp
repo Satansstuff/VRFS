@@ -796,10 +796,10 @@ std::string FileSystem::ls(const std::string &dir)
 			continue; // FILESYSTEM BROKEN
 		std::string name(child->name);
 		if(child->attributes[0])
-			dirs += "\n\t" + name;
+			dirs += "\n\tType: Folder\tName:" + name + "\t Bytes: 0";
 		else
 			//Null-terminatorn räknas in
-			files += "\n\tName: " + name + "\t Bytes:" + std::to_string(child->numBytes);
+			files += "\n\tType: File\tName: " + name + "\t Bytes:" + std::to_string(child->numBytes);
 
 		delete child;
 	}
