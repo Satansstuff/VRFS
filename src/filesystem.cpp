@@ -802,9 +802,10 @@ std::string FileSystem::ls(const std::string &dir)
 			continue; // FILESYSTEM BROKEN
 		std::string name(child->name);
 		if(child->attributes[0])
-			dirs += "\n\t" + name;
+			dirs += "\n\tType: Folder\tName:" + name + "\t Bytes: 0";
 		else
-			files += "\n\t" + name;
+			//Null-terminatorn räknas in
+			files += "\n\tType: File\tName: " + name + "\t Bytes:" + std::to_string(child->numBytes);
 
 		delete child;
 	}
