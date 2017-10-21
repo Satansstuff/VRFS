@@ -266,12 +266,8 @@ int FileSystem::create(const std::string& file)
 	if(last > file.size())
 	{
 		last = 0;
-		parent = parsePath(file.substr(0,last));
 	}
-	else
-	{
-		parent = parsePath(file.substr(0,last));
-	}
+	parent = parsePath(file.substr(0,last));
 
 	if(!parent)
 	{
@@ -280,7 +276,7 @@ int FileSystem::create(const std::string& file)
 		return FILE_ERROR;
 	}
 
-	std::string to_create = file.substr(last);
+	std::string to_create = file.substr(last+1);
 	node.addresses[0] = parent->addresses[1];
 	strcpy(node.name, to_create.c_str());
 
@@ -855,4 +851,14 @@ int FileSystem::chmod(const std::string &str, bool r, bool w)
 	writeInodeToBlock(node);
 	delete node;
 	return 1;
+}
+
+bool FileSystem::isDirectory(const std::string& path)
+{
+	Inode* inode = parsePath(path);
+	if(!inode)
+		return false;
+	bool result = inode->attributes[0];
+	delete inode;
+	return result;
 }

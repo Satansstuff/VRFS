@@ -109,6 +109,7 @@ public:
 	FileSystem(const std::string &path);
 	~FileSystem();
 
+	bool isDirectory(const std::string& path);
 	int create(const std::string& file);
 	std::string getCurrentDirectory();
 	int remove(const std::string& file);

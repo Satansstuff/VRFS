@@ -66,10 +66,21 @@ std::string ShellFunctions::ls(const std::string& path)
 }
 void ShellFunctions::cp(const std::string& oldfile, const std::string& newfile)
 {
-	f->create(newfile);
-	File f1 = f->open(newfile);
+	std::string newfilepath = newfile;
+	if(f->isDirectory(newfile))
+	{
+		size_t last = oldfile.find_last_of("/\\");
+		if(last > oldfile.size())
+		{
+			last = 0;
+		}
+		newfilepath += "/" + oldfile.substr(last, oldfile.size());
+	}
+	f->create(newfilepath);
+	File f1 = f->open(newfilepath);
 	File f2 = f->open(oldfile);
 	std::string data = f->read(f2);
+	std::cout << newfilepath << "\n";
 	f->write(f1, data);
 	f->close(f1);
 	f->close(f2);
@@ -105,8 +116,20 @@ std::string ShellFunctions::mv(const std::string& sourcepath, const std::string&
 		return std::string("Failed");
 	}
 	s = f->read(file);
-	f->create(destpath);
-	File newfile = f->open(destpath);
+
+	std::string new_file = destpath;
+	if(f->isDirectory(destpath))
+	{
+		size_t last = sourcepath.find_last_of("/\\");
+		if(last > sourcepath.size())
+		{
+			last = 0;
+		}
+		new_file += sourcepath.substr(last, sourcepath.size());
+	}
+
+	f->create(new_file);
+	File newfile = f->open(new_file);
 	if(!newfile)
 	{
 		return std::string("Failed");
