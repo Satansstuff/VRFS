@@ -258,14 +258,22 @@ int FileSystem::create(const std::string& file)
 	}
 	Inode node;
 	node.attributes.set(0, false);
+	node.attributes.set(1, true);
+	node.attributes.set(2, true);
 	node.addresses[1] = inode_addr;
 	std::size_t last = file.find_last_of("/\\");
 
 	Inode* parent = nullptr;
 
+	std::string to_create;
 	if(last > file.size())
 	{
 		last = 0;
+		to_create = file;
+	}
+	else
+	{
+		to_create = file.substr(last+1);
 	}
 	parent = parsePath(file.substr(0,last));
 
@@ -276,7 +284,9 @@ int FileSystem::create(const std::string& file)
 		return FILE_ERROR;
 	}
 
-	std::string to_create = file.substr(last+1);
+	//std::cout << file << "\n";
+	//std::cout << to_create << "\n";
+
 	node.addresses[0] = parent->addresses[1];
 	strcpy(node.name, to_create.c_str());
 
@@ -838,6 +848,8 @@ std::string FileSystem::currDirName()
 int FileSystem::chmod(const std::string &str, bool r, bool w)
 {
 	Inode *node = parsePath(str);
+	if(!node)
+		return NOT_FOUND;
 	if(node->attributes[0])
 	{
 		delete node;

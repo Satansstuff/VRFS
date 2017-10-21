@@ -42,7 +42,6 @@ std::string ShellFunctions::create(const std::string& filepath)
 	if(!create_error)
 		return "";//"ERROR: could not create file";
 
-	f->chmod(filepath, true, true);
 	File file = f->open(filepath);
 	if(!file)
 		return "";
