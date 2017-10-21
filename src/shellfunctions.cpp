@@ -147,3 +147,8 @@ std::string ShellFunctions::chmod(const std::string &file, bool r, bool w)
 {
 	return std::to_string(f->chmod(file,r,w));
 }
+
+std::string ShellFunctions::currentDirName()
+{
+	return f->currDirName();
+}

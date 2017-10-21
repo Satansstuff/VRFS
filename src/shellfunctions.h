@@ -38,5 +38,7 @@ public:
 	std::string chmod(const std::string &file, bool r, bool w);
 
 	std::string remove(const std::string &file);
+
+	std::string currentDirName();
 };
 

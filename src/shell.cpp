@@ -35,7 +35,7 @@ int main(void) {
     bool a,b;
 
     do {
-	currentDir = f.pwd();
+		currentDir = f.currentDirName();
 
     	for(size_t i = 0; i < MAXCOMMANDS; i++)
     	{

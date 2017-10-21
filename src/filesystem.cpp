@@ -5,8 +5,8 @@
 
 FileSystem::FileSystem()
 {
-	std::cout << "Bitmaps size:  " << AVAILABLE_BLOCKS + NUM_INODES << "\n";
-	std::cout << "Bitmaps bytes: " << (AVAILABLE_BLOCKS + NUM_INODES)/8 << "\n";
+	//std::cout << "Bitmaps size:  " << AVAILABLE_BLOCKS + NUM_INODES << "\n";
+	//std::cout << "Bitmaps bytes: " << (AVAILABLE_BLOCKS + NUM_INODES)/8 << "\n";
 	Inode root_dir;
 	root_dir.attributes.set(0,true);
 	root_dir.attributes.set(1,true);
@@ -17,6 +17,7 @@ FileSystem::FileSystem()
 	root_dir.addresses[1] = 0;
 	inode_bitmap.set(0, true);
 	writeInodeBitmap();
+	writeBlockBitmap();
 	writeInodeToBlock(&root_dir);
 
 	current_directory = 0;
@@ -24,6 +25,9 @@ FileSystem::FileSystem()
 FileSystem::FileSystem(const std::string &path)
 {
 	memory.restoreImage(path);
+	current_directory = 0;
+	readInodeBitmap();
+	readBlockBitmap();
 }
 FileSystem::~FileSystem()
 {
@@ -31,6 +35,8 @@ FileSystem::~FileSystem()
 }
 void FileSystem::saveToFile(const std::string &path)
 {
+	writeInodeBitmap();
+	writeBlockBitmap();
 	memory.createImage(path);
 }
 void FileSystem::writeBlockBitmap()
@@ -841,6 +847,8 @@ std::string FileSystem::ls(const std::string &dir)
 std::string FileSystem::currDirName()
 {
 	Inode* current = getInode(current_directory);
+	if(!current)
+		return "ERROR";
 	std::string result(current->name);
 	delete current;
 	return result;

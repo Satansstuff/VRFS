@@ -9,6 +9,7 @@ MemoryDevice::MemoryDevice()
 	for(int i = 0; i < NUM_BLOCKS; i++)
 	{
 		blocks[i] = new char[BLOCK_SIZE];
+		memset(blocks[i], 0, BLOCK_SIZE);
 	}
 }
 
@@ -55,12 +56,13 @@ int MemoryDevice::read(int block, char* dest, int num_bytes, int start)
 void MemoryDevice::createImage(const std::string& filepath)
 {
 	std::ofstream file;
-	file.open(filepath);
-	if(!file.is_open())
+	file.open(filepath, std::ios::binary | std::ios::out);
+	if(file.is_open())
 	{
 		for(int i = 0; i < NUM_BLOCKS; i++)
 		{
-			file << blocks[i];
+			file.seekp(i*BLOCK_SIZE, std::ios::beg);
+			file.write(blocks[i], BLOCK_SIZE);
 		}
 		file.close();
 	}
@@ -69,9 +71,14 @@ void MemoryDevice::createImage(const std::string& filepath)
 void MemoryDevice::restoreImage(const std::string& filepath)
 {
 	std::ifstream file;
-	file.open(filepath);
+	file.open(filepath, std::ios::binary);
 	if(file.is_open())
 	{
-		
+		for(int i = 0; i < NUM_BLOCKS; i++)
+		{
+			file.seekg(i*BLOCK_SIZE, std::ios::beg);
+			file.read(blocks[i], BLOCK_SIZE);
+		}
+		file.close();
 	}
 }
