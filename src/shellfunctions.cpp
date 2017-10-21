@@ -1,4 +1,7 @@
 #include <string>
+#include <limits>
+#include <iostream>
+#include <fstream>
 #include "shellfunctions.h"
 #include "filesystem.h"
 
@@ -34,7 +37,22 @@ void ShellFunctions::restoreImage(const std::string& filepath)
 }
 std::string ShellFunctions::create(const std::string& filepath)
 {
-	return std::to_string((int)f->create(filepath));
+	int create_error = (int)f->create(filepath);
+
+	if(!create_error)
+		return "";//"ERROR: could not create file";
+
+	f->chmod(filepath, true, true);
+	File file = f->open(filepath);
+	if(!file)
+		return "";
+	std::string line;
+	std::getline(std::cin, line);
+	int write_error = f->write(file, line);
+	if(!write_error)
+		return "";
+	f->close(file);
+	return "done";
 }
 std::string ShellFunctions::cat(const std::string& filepath)
 {
