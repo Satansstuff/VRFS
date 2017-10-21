@@ -37,6 +37,10 @@ void ShellFunctions::restoreImage(const std::string& filepath)
 }
 std::string ShellFunctions::create(const std::string& filepath)
 {
+	if(filepath.length() <= 0)
+	{
+		return "";
+	}
 	int create_error = (int)f->create(filepath);
 
 	if(!create_error)

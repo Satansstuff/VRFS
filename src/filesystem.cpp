@@ -810,7 +810,7 @@ std::string FileSystem::ls(const std::string &dir)
 			if(child->attributes[0])
 				dirs += "\n\t" + name;
 			else
-				files += "\n\t" + name;
+				files += "\n\t" + name + "\t" + std::to_string(child->numBytes);
 
 			delete child;
 		}
