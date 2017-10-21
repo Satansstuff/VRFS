@@ -250,6 +250,7 @@ int FileSystem::create(const std::string& file)
 		//Filen finns redan
 		return ALREADY_EXISTS;
 	}
+	delete testnode;
 	int inode_addr = reserveFreeInode();
 	if(!inode_addr)
 	{
