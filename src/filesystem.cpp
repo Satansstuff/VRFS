@@ -183,10 +183,10 @@ Inode* FileSystem::parsePath(const std::string& path)
 			// move to parent
 			Inode* parent = getParent(current);
 
+			delete current;
 			if(!parent)
 				return nullptr; // CRITICAL ERROR NO PARENT FOUND, FILESYSTEM BROKEN!!
 
-			delete current;
 			current = parent;
 		}
 		else
@@ -194,10 +194,10 @@ Inode* FileSystem::parsePath(const std::string& path)
 			// search for item in current node, move to it
 			Inode* child = findChild(current, item);
 
+			delete current;
 			if(!child)
 				return nullptr; // CHILD NOT FOUND!
 
-			delete current;
 			current = child;
 		}
 	}
