@@ -106,13 +106,13 @@ class FileSystem
 public:
 
 	FileSystem();
-
+	FileSystem(const std::string &path);
 	~FileSystem();
 
 	int create(const std::string& file);
 	std::string getCurrentDirectory();
 	int remove(const std::string& file);
-
+	void saveToFile(const std::string &path);
 	int chmod(const std::string &str, bool r, bool w);
 	int mkdir(const std::string &dir);
 	int cd(const std::string &dir);

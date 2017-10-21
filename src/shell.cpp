@@ -69,8 +69,10 @@ int main(void) {
                 std::cout << f.cat(commandArr[1]) << std::endl;
                 break;
             case 5: // createImage
+                f.createImage(commandArr[1]);
                 break;
             case 6: // restoreImage
+                f.restoreImage(commandArr[1]);
                 break;
             case 7: // rm
             	f.remove(commandArr[1]);
@@ -79,8 +81,10 @@ int main(void) {
                 f.cp(commandArr[1], commandArr[2]);
                 break;
             case 9: // append
+                f.append(commandArr[1], commandArr[2]);
                 break;
             case 10: // mv
+                f.mv(commandArr[1],commandArr[2]);
                 break;
             case 11: // mkdir
                 s = f.mkdir(commandArr[1]);

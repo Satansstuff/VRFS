@@ -23,13 +23,14 @@ std::string ShellFunctions::pwd()
 {
 	return f->getCurrentDirectory();
 }
-std::string ShellFunctions::createImage(const std::string& filepath)
+void ShellFunctions::createImage(const std::string& filepath)
 {
-	return std::string("derp");
+	f->saveToFile(filepath);
 }
-std::string ShellFunctions::restoreImage(const std::string& filepath)
+void ShellFunctions::restoreImage(const std::string& filepath)
 {
-	return std::string("derp");
+	delete f;
+	f = new FileSystem(filepath);
 }
 std::string ShellFunctions::create(const std::string& filepath)
 {
@@ -67,9 +68,15 @@ std::string ShellFunctions::rm(const std::string& filepath)
 {
 	return std::to_string(f->remove(filepath));
 }
-std::string ShellFunctions::append(const std::string& filepath1, const std::string& filepath2)
+void ShellFunctions::append(const std::string& filepath1, const std::string& filepath2)
 {
-	return std::string("derp");
+	std::string source1, source2, toWrite;
+	File sourceFile = f->open(filepath1);
+	source1 = f->read(sourceFile);
+	File destFile = f->open(filepath2);
+	source2 = f->read(destFile);
+	toWrite = source1 + source2;
+	f->write(destFile, toWrite);
 }
 std::string ShellFunctions::mv(const std::string& sourcepath, const std::string& destpath)
 {
@@ -90,7 +97,7 @@ std::string ShellFunctions::mv(const std::string& sourcepath, const std::string&
 	f->close(file);
 	f->remove(sourcepath);
 	f->close(newfile);
-	return std::string("");
+	return std::string("Success");
 }
 std::string ShellFunctions::chmod(const std::string &file, bool r, bool w)
 {

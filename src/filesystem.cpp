@@ -21,13 +21,18 @@ FileSystem::FileSystem()
 
 	current_directory = 0;
 }
-
-
+FileSystem::FileSystem(const std::string &path)
+{
+	memory.restoreImage(path);
+}
 FileSystem::~FileSystem()
 {
 
 }
-
+void FileSystem::saveToFile(const std::string &path)
+{
+	memory.createImage(path);
+}
 void FileSystem::writeBlockBitmap()
 {
 	memory.write(0, block_bitmap.getMap(), block_bitmap.getNumBytes());

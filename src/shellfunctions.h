@@ -11,9 +11,9 @@ public:
 	~ShellFunctions();
 	void format();
 
-	std::string createImage(const std::string& filepath);
+	void createImage(const std::string& filepath);
 
-	std::string restoreImage(const std::string& filepath);
+	void restoreImage(const std::string& filepath);
 
 	std::string create(const std::string& filepath);
 
@@ -31,7 +31,7 @@ public:
 
 	std::string rm(const std::string& filepath);
 
-	std::string append(const std::string& filepath1, const std::string& filepath2);
+	void append(const std::string& filepath1, const std::string& filepath2);
 
 	std::string mv(const std::string& sourcepath, const std::string& destpath);
 
