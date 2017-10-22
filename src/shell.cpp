@@ -121,7 +121,7 @@ int main(void) {
                     b = false;
                 }
                 s = f.chmod(commandArr[1], a , b);
-                std::cout << help() << std::endl;
+                std::cout << s << std::endl;
                 break;
             default:
                 std::cout << "Unknown command: " << commandArr[0] << std::endl;
