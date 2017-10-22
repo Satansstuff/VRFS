@@ -53,8 +53,11 @@ int MemoryDevice::read(int block, char* dest, int num_bytes, int start)
 }
 
 
-void MemoryDevice::createImage(const std::string& filepath)
+void MemoryDevice::createImage(const std::string& fp)
 {
+	std::string filepath = fp;
+	if(filepath.size() == 0)
+		filepath = "image";
 	std::ofstream file;
 	file.open(filepath, std::ios::binary | std::ios::out);
 	if(file.is_open())
@@ -68,8 +71,11 @@ void MemoryDevice::createImage(const std::string& filepath)
 	}
 }
 
-void MemoryDevice::restoreImage(const std::string& filepath)
+void MemoryDevice::restoreImage(const std::string& fp)
 {
+	std::string filepath = fp;
+	if(filepath.size() == 0)
+		filepath = "image";
 	std::ifstream file;
 	file.open(filepath, std::ios::binary);
 	if(file.is_open())

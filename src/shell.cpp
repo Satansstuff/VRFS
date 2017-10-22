@@ -28,7 +28,7 @@ int main(void) {
 	// </DEBUG>
 
 	std::string userCommand, commandArr[MAXCOMMANDS];
-	std::string user = "[user@DV1492";    // Change this if you want another user to be displayed
+	std::string user = "[bogdan@DV1492";    // Change this if you want another user to be displayed
 	std::string currentDir = "/";    // current directory, used for output
 
     bool bRun = true;
