@@ -83,7 +83,6 @@ void ShellFunctions::cp(const std::string& oldfile, const std::string& newfile)
 	File f1 = f->open(newfilepath);
 	File f2 = f->open(oldfile);
 	std::string data = f->read(f2);
-	std::cout << newfilepath << "\n";
 	f->write(f1, data);
 	f->close(f1);
 	f->close(f2);
