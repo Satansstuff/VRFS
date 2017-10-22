@@ -602,7 +602,7 @@ int FileSystem::removeDir(Inode* dir)
 
 int FileSystem::removeFile(Inode* toRemove)
 {
-	auto address = toRemove->addresses[1];
+
 	if(!toRemove->attributes[2])
 	{
 		return filecodes::ACCESS_DENIED;
@@ -610,7 +610,7 @@ int FileSystem::removeFile(Inode* toRemove)
 	//Sök igenom openfiles så man inte tar bort en fil som är öppen
 	for(auto &inode : open_files)
 	{
-		if(inode.second.addresses[1] == address)
+		if(inode.second.addresses[1] == toRemove->addresses[1])
 		{
 			return filecodes::FILE_IS_OPEN;
 		}
@@ -619,15 +619,32 @@ int FileSystem::removeFile(Inode* toRemove)
 		Sätt bitmap både inode och block till false så de kan återanvändas
 		måste veta om det är indirect och hur mycket jadijadijadi
 	*/
-	unsigned numBlocks = toRemove->numBytes / BLOCK_SIZE;
-	if(numBlocks > NUM_ADDRESSES - 2)
+	unsigned num_blocks = std::ceil((double)toRemove->numBytes / BLOCK_SIZE);
+
+	for(size_t i = 0; i < NUM_ADDRESSES -2 && i < num_blocks; i++)
 	{
-		//direct
+		int index = i + 2;
+		Address address = toRemove->addresses[index];
+		freeBlock(address);
 	}
-	else
+
+	if(num_blocks > NUM_ADDRESSES - 2)
 	{
 		//indirect
+		size_t num_left = num_blocks - (NUM_ADDRESSES - 2);
+		int block = toRemove->indirect_address + NUM_INODE_BLOCKS + 1;
+		Address* buffer = new Address[num_left];
+		memory.read(block, (char*)buffer, sizeof(Address)*num_left);
+		for(size_t i = 0; i < num_left; i++)
+		{
+			freeBlock(buffer[i]);
+		}
+		delete[] buffer;
+		freeBlock(toRemove->indirect_address);
 	}
+	Inode* parent = getParent(toRemove);
+	removeAddressFromDir(parent, toRemove->addresses[1]);
+	freeInode(toRemove->addresses[1]);
 	return filecodes::DELETE_OK;
 }
 
